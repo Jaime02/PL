@@ -1,2 +1,9 @@
-x = 3
-
+algoritmo intercambio
+    var
+        aux: entero
+    fvar
+    
+    aux := a
+    a:= b
+    b:= aux
+falgoritmo
