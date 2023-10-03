@@ -4,6 +4,6 @@ algoritmo intercambio
     fvar
     
     aux := a
-    a:= b
-    b:= aux
+    a := b
+    b := aux
 falgoritmo
