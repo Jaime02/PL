@@ -1,0 +1,18 @@
+algoritmo pruebanumeros;
+{Prec: nada}
+    var
+        i: entero;
+        r: real;
+        t: tabla de entero;
+    fvar
+    i := -1;
+    i := i -1;
+    i := i - 1;
+    i := i - -1;
+
+    i := 3.3;
+    i := 3.3e3;
+
+
+{Post: nada}
+falgoritmo
