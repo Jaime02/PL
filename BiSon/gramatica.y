@@ -15,14 +15,7 @@ extern FILE* yyin;
 %token TK_DEFINICION
 %token TK_SUBRANGO
 %token TK_ENTONCES
-%token TK_ABRIR_PARENTESIS
-%token TK_CERRAR_PARENTESIS
-%token TK_SUMA
-%token TK_RESTA
-%token TK_PROD
-%token TK_MOD
-%token TK_DIV_REA
-%token TK_IGUAL
+%left TK_SUMA TK_RESTA TK_PROD TK_MOD TK_DIV_REA TK_IGUAL
 %token TK_MAYOR
 %token TK_MENOR
 %token TK_MENOR_IGUAL
@@ -31,11 +24,14 @@ extern FILE* yyin;
 %token TK_ABRIR_TABLA
 %token TK_CERRAR_TABLA
 %token TK_BOOLEANO
+%token TK_ABRIR_PARENTESIS
+%token TK_CERRAR_PARENTESIS
 
 %token TK_TIPO_BASE
 %token TK_PUNTO_COMA
-%token TK_OPREL
-%token TK_PUNTO
+%left TK_OPREL
+%left TK_PUNTO
+%token TK_COMA
 
 %token TK_CARACTER
 %token TK_CADENA
@@ -46,11 +42,11 @@ extern FILE* yyin;
 %token TK_CONTINUAR
 %token TK_DE
 %token TK_DEV
-%token TK_DIV
+%left TK_DIV
 %token TK_ENT
 %token TK_ES
 %token TK_FACCION
-%token TK_FALORITMO
+%token TK_FALGORITMO
 %token TK_FALSO
 %token TK_FCONST
 %token TK_FFUNCION
@@ -64,9 +60,9 @@ extern FILE* yyin;
 %token TK_HACER
 %token TK_HASTA
 %token TK_MIENTRAS
-%token TK_MOD
+%left TK_R_MOD
 %token TK_NO
-%token TK_O
+%left TK_O
 %token TK_PARA
 %token TK_REF
 %token TK_SAL
@@ -77,7 +73,7 @@ extern FILE* yyin;
 %token TK_TUPLA
 %token TK_VAR
 %token TK_VERDADERO
-%token TK_Y
+%left TK_Y
 %token TK_R_REAL
 %token TK_R_BOOLEANO
 %token TK_R_CADENA
@@ -86,141 +82,139 @@ extern FILE* yyin;
 %token TK_LITERAL_CARACTER
 %token TK_LITERAL_NUMERICO
 %token TK_LITERAL
+
+
 %%
-desc_algoritmo : TK_ALGORITMO TK_IDENTIFICADOR TK_PUNTO_COMA cabecera_alg bloque_alg TK_FALGORITMO
+desc_algoritmo : TK_ALGORITMO TK_IDENTIFICADOR TK_PUNTO_COMA cabecera_alg bloque_alg TK_FALGORITMO {}
 ;
-cabecera_alg : decl_globales decl_a_f decl_ent_sal TK_COMENTARIO
+cabecera_alg : decl_globales decl_a_f decl_ent_sal TK_COMENTARIO {}
 ;
-bloque_alg : bloque TK_COMENTARIO
+bloque_alg : bloque TK_COMENTARIO {}
 ;
-decl_globales : decl_tipo decl_globales 
-| decl_const decl_globales 
-| %empty 
+decl_globales : decl_tipo decl_globales {}
+| decl_cte decl_globales {}
+| %empty {}
 ;
-decl_a_f : accion_d decl_a_f 
-| funcion_d decl_a_f 
-| %empty
+decl_a_f : accion_d decl_a_f {}
+| funcion_d decl_a_f {}
+| %empty {}
 ;
-bloque : declaraciones instrucciones
+bloque : declaraciones instrucciones {}
 ;
-declaraciones : decl_tipo declaraciones 
-| decl_const declaraciones 
-| decl_var declaraciones 
-| %empty
+declaraciones : decl_tipo declaraciones {}
+| decl_cte declaraciones {}
+| decl_var declaraciones {}
+| %empty {}
 ;
-decl_tipo : TK_TIPO lista_d_tipo TK_FTIPO TK_PUNTO_COMA
+decl_tipo : TK_TIPO lista_d_tipo TK_FTIPO TK_PUNTO_COMA {}
 ;
-decl_cte : TK_CONST lista_d_cte TK_FCONST TK_PUNTO_COMA
+decl_cte : TK_CONST lista_d_cte TK_FCONST TK_PUNTO_COMA {}
 ;
-decl_var : TK_VAR lista_d_var TK_FVAR TK_PUNTO_COMA
+decl_var : TK_VAR lista_d_var TK_FVAR TK_PUNTO_COMA {}
 ;
-lista_d_tipo : TK_IDENTIFICADOR TK_IGUAL d_tipo TK_PUNTO_COMA lista_d_tipo 
-| %empty
+lista_d_tipo : TK_IDENTIFICADOR TK_IGUAL d_tipo TK_PUNTO_COMA lista_d_tipo {}
+| %empty {}
 ;
-d_tipo : TK_TUPLA lista_campos TK_FTUPLA 
-| TK_TABLA TK_ABRIR_TABLA expresion_t TK_SUBRANGO expresion_t TK_CERRAR_TABLA TK_DE d_tipo
-| TK_IDENTIFICADOR 
-| expresion_t TK_DEFINICION expresion_t 
-| TK_REF d_tipo
-| TK_TIPO_BASE
+d_tipo : TK_TUPLA lista_campos TK_FTUPLA {}
+| TK_TABLA TK_ABRIR_TABLA expresion_t TK_SUBRANGO expresion_t TK_CERRAR_TABLA TK_DE d_tipo {}
+| TK_IDENTIFICADOR {}
+| expresion_t TK_DEFINICION expresion_t {}
+| TK_REF d_tipo {}
+| TK_TIPO_BASE {}
 ;
-expresion_t : expresion 
-| TK_LITERAL_CARACTER
+expresion_t : expresion {}
+| TK_LITERAL_CARACTER {}
 ;
-lista_campos : TK_IDENTIFICADOR TK_DEFINICION d_tipo TK_PUNTO_COMA lista_campos 
-| %empty
+lista_campos : TK_IDENTIFICADOR TK_DEFINICION d_tipo TK_PUNTO_COMA lista_campos {}
+| %empty {}
 ;
-lista_d_cte : TK_IDENTIFICADOR TK_IGUAL TK_LITERAL TK_PUNTO_COMA lista_d_cte 
-| %empty
+lista_d_cte : TK_IDENTIFICADOR TK_IGUAL TK_LITERAL TK_PUNTO_COMA lista_d_cte {}
+| %empty {}
 ;
-lista_d_var : lista_id TK_DEFINICION TK_IDENTIFICADOR TK_PUNTO_COMA lista_d_var 
-| lista_id TK_DEFINICION d_tipo TK_PUNTO_COMA lista_d_var
-| %empty
+lista_d_var : lista_id TK_DEFINICION TK_IDENTIFICADOR TK_PUNTO_COMA lista_d_var {}
+| lista_id TK_DEFINICION d_tipo TK_PUNTO_COMA lista_d_var {}
+| %empty {}
 ;
-lista_id : TK_IDENTIFICADOR TK_COMA lista_id 
-| TK_IDENTIFICADOR
+lista_id : TK_IDENTIFICADOR TK_COMA lista_id {}
+| TK_IDENTIFICADOR {}
 ;
-decl_ent_sal : decl_ent 
-| decl_ent decl_sal 
-| decl_sal
+decl_ent_sal : decl_ent {}
+| decl_ent decl_sal {}
+| decl_sal {}
 ;
-decl_ent : TK_ENT lista_d_var
+decl_ent : TK_ENT lista_d_var {}
 ;
-decl_sal : TK_SAL lista_d_var
+decl_sal : TK_SAL lista_d_var {}
 ;
-expresion : exp_a 
-| exp_b 
-| funcion_ll
+expresion : exp_a {}
+| funcion_ll {}
 ;
-exp_a : exp_a TK_MAS exp_a
-| exp_a TK_MENOS exp_a
-| exp_a TK_PROD exp_a
-| exp_a TK_DIV_REA exp_a
-| exp_a TK_MOD exp_a
-| exp_a TK_DIV exp_a
-| TK_ABRIR_PARENTESIS exp_a TK_CERRAR_PARENTESIS 
-| operando
-| TK_LITERAL_NUMERICO
-| TK_MENOS exp_a
+exp_a : exp_a TK_SUMA exp_a {}
+| exp_a TK_RESTA exp_a {}
+| exp_a TK_PROD exp_a {}
+| exp_a TK_DIV_REA exp_a {}
+| exp_a TK_R_MOD exp_a {}
+| exp_a TK_DIV exp_a {}
+| TK_ABRIR_PARENTESIS exp_a TK_CERRAR_PARENTESIS {}
+| operando {}
+| TK_LITERAL_NUMERICO {}
+| TK_RESTA exp_a {}
+| exp_a TK_Y exp_a {}
+| exp_a TK_O exp_a {}
+| TK_NO exp_a {}
+| TK_VERDADERO {}
+| TK_FALSO {}
+| expresion TK_OPREL expresion {}
 ;
-exp_b : exp_b TK_Y exp_b 
-| exp_b TK_O exp_b 
-| TK_NO exp_b
-| operando
-| TK_VERDADERO
-| TK_FALSO
-| expresion TK_OPREL expresion 
-| TK_ABRIR_PARENTESIS exp_b TK_CERRAR_PARENTESIS 
+operando : TK_IDENTIFICADOR {}
+| operando TK_PUNTO operando {}
+| operando TK_ABRIR_PARENTESIS expresion TK_CERRAR_PARENTESIS {}
+| operando TK_REF {}
 ;
-operando : TK_IDENTIFICADOR
-| operando TK_PUNTO operando
-| operando TK_ABRIR_PARENTESIS expresion TK_CERRAR_PARENTESIS 
-| operando TK_REF
+instrucciones : instruccion TK_PUNTO_COMA instrucciones {}
+| instruccion {}
 ;
-instrucciones : instruccion TK_PUNTO_COMA instrucciones
-| instruccion
+instruccion : TK_CONTINUAR {}
+| asignacion {}
+| alternativa {}
+| iteracion {}
+| accion_ll {}
 ;
-instruccion : TK_CONTINUAR 
-| asignacion 
-| alternativa
-| iteracion
-| accion_ll
+asignacion : operando TK_ASIGNACION expresion {}
 ;
-asignacion : operando TK_ASIGNACION expresion
+alternativa : TK_SI expresion TK_ENTONCES instrucciones lista_opciones TK_FSI {}
 ;
-alternativa : TK_SI expresion TK_ENTONCES instrucciones lista_opciones TK_FSI
+lista_opciones : TK_SINOSI expresion TK_ENTONCES instrucciones lista_opciones {}
+| %empty {}
 ;
-lista_opciones : TK_SINOSI expresion TK_ENTONCES instrucciones lista_opciones
-| %empty
+iteracion : it_cota_fija {}
+| it_cota_exp {}
 ;
-iteracion : it_cota_fija 
-| it_cota_exp
+it_cota_fija : TK_PARA TK_IDENTIFICADOR TK_ASIGNACION expresion TK_HASTA expresion TK_HACER instrucciones TK_FPARA {}
 ;
-it_cota_fija : TK_PARA TK_IDENTIFICADOR TK_ASIGNACION expresion TK_HASTA expresion TK_HACER instrucciones TK_FPARA
+it_cota_exp : TK_MIENTRAS expresion TK_HACER instrucciones TK_FMIENTRAS {}
 ;
-it_cota_exp : TK_MIENTRAS expresion TK_HACER instrucciones TK_FMIENTRAS
+accion_d : TK_ACCION a_cabecera bloque TK_FACCION {}
 ;
-accion_d : TK_ACCION a_cabecera blloque TK_FACCION
+funcion_d : TK_FUNCION f_cabecera bloque TK_DEV expresion TK_FFUNCION {}
 ;
-funcion_d : TK_FUNCION f_cabecera bloque TK_DEV expresion TK_FFUNCION
+a_cabecera : TK_IDENTIFICADOR TK_ABRIR_PARENTESIS d_par_form TK_CERRAR_PARENTESIS TK_PUNTO_COMA {}
 ;
-a_cabecera : TK_IDENTIFICADOR TK_ABRIR_PARENTESIS d_par_form TK_CERRAR_PARENTESIS TK_PUNTO_COMA
+f_cabecera : TK_IDENTIFICADOR TK_ABRIR_PARENTESIS lista_d_var TK_CERRAR_PARENTESIS TK_DEV d_tipo TK_PUNTO_COMA {}
 ;
-f_cabecera : TK_IDENTIFICADOR TK_ABRIR_PARENTESIS lista_d_var TK_CERRAR_PARENTESIS TK_DEV d_tipo TK_PUNTO_COMA
+d_par_form : d_p_form TK_PUNTO_COMA d_par_form {}
+| %empty {}
 ;
-d_par_form : d_p_form TK_PUNTO_COMA d_par_form
-| %empty
+d_p_form : TK_ENT lista_id TK_DEFINICION d_tipo {}
+| TK_SAL lista_id TK_DEFINICION d_tipo {}
+| TK_ES lista_id TK_DEFINICION d_tipo {}
 ;
-d_p_form : TK_ENT lista_id TK_DEFINICION d_tipo 
-| TK_SAL lista_id TK_DEFINICION d_tipo
-| TK_ES lista_id TK_DEFINICION d_tipo
+accion_ll : TK_IDENTIFICADOR TK_ABRIR_PARENTESIS l_ll TK_CERRAR_PARENTESIS {}
 ;
-accion_ll : TK_IDENTIFICADOR TK_ABRIR_PARENTESIS l_ll TK_CERRAR_PARENTESIS
+funcion_ll : TK_IDENTIFICADOR TK_ABRIR_PARENTESIS l_ll TK_CERRAR_PARENTESIS {}
 ;
-funcion_ll : TK_IDENTIFICADOR TK_ABRIR_PARENTESIS l_ll TK_CERRAR_PARENTESIS
-;
-l_ll : expresion TK_COMA l_ll 
-| expresion
+l_ll : expresion TK_COMA l_ll {}
+| expresion {}
 ;
 
 %%
