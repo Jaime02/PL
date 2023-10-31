@@ -15,7 +15,7 @@ extern FILE* yyin;
 %token TK_DEFINICION
 %token TK_SUBRANGO
 %token TK_ENTONCES
-%left TK_SUMA TK_RESTA TK_PROD TK_MOD TK_DIV_REA TK_IGUAL
+%left TK_SUMA TK_RESTA TK_DIV TK_PROD TK_MOD TK_R_MOD TK_DIV_REA TK_IGUAL TK_O TK_Y
 %token TK_MAYOR
 %token TK_MENOR
 %token TK_MENOR_IGUAL
@@ -31,7 +31,6 @@ extern FILE* yyin;
 %token TK_PUNTO_COMA
 %left TK_OPREL
 %left TK_PUNTO
-%token TK_COMA
 
 %token TK_CARACTER
 %token TK_CADENA
@@ -42,7 +41,6 @@ extern FILE* yyin;
 %token TK_CONTINUAR
 %token TK_DE
 %token TK_DEV
-%left TK_DIV
 %token TK_ENT
 %token TK_ES
 %token TK_FACCION
@@ -60,9 +58,7 @@ extern FILE* yyin;
 %token TK_HACER
 %token TK_HASTA
 %token TK_MIENTRAS
-%left TK_R_MOD
 %token TK_NO
-%left TK_O
 %token TK_PARA
 %token TK_REF
 %token TK_SAL
@@ -73,7 +69,6 @@ extern FILE* yyin;
 %token TK_TUPLA
 %token TK_VAR
 %token TK_VERDADERO
-%left TK_Y
 %token TK_R_REAL
 %token TK_R_BOOLEANO
 %token TK_R_CADENA
@@ -82,6 +77,7 @@ extern FILE* yyin;
 %token TK_LITERAL_CARACTER
 %token TK_LITERAL_NUMERICO
 %token TK_LITERAL
+
 
 
 %%
@@ -135,7 +131,7 @@ lista_d_var : lista_id TK_DEFINICION TK_IDENTIFICADOR TK_PUNTO_COMA lista_d_var 
 | lista_id TK_DEFINICION d_tipo TK_PUNTO_COMA lista_d_var {}
 | %empty {}
 ;
-lista_id : TK_IDENTIFICADOR TK_COMA lista_id {}
+lista_id : TK_IDENTIFICADOR TK_SEPARADOR lista_id {}
 | TK_IDENTIFICADOR {}
 ;
 decl_ent_sal : decl_ent {}
@@ -146,9 +142,7 @@ decl_ent : TK_ENT lista_d_var {}
 ;
 decl_sal : TK_SAL lista_d_var {}
 ;
-expresion : exp_a {}
-| funcion_ll {}
-;
+
 exp_a : exp_a TK_SUMA exp_a {}
 | exp_a TK_RESTA exp_a {}
 | exp_a TK_PROD exp_a {}
@@ -158,13 +152,16 @@ exp_a : exp_a TK_SUMA exp_a {}
 | TK_ABRIR_PARENTESIS exp_a TK_CERRAR_PARENTESIS {}
 | operando {}
 | TK_LITERAL_NUMERICO {}
-| TK_RESTA exp_a {}
+| TK_RESTA exp_a  {}
 | exp_a TK_Y exp_a {}
 | exp_a TK_O exp_a {}
 | TK_NO exp_a {}
 | TK_VERDADERO {}
 | TK_FALSO {}
 | expresion TK_OPREL expresion {}
+;
+expresion : exp_a{}
+| funcion_ll {}
 ;
 operando : TK_IDENTIFICADOR {}
 | operando TK_PUNTO operando {}
@@ -213,7 +210,7 @@ accion_ll : TK_IDENTIFICADOR TK_ABRIR_PARENTESIS l_ll TK_CERRAR_PARENTESIS {}
 ;
 funcion_ll : TK_IDENTIFICADOR TK_ABRIR_PARENTESIS l_ll TK_CERRAR_PARENTESIS {}
 ;
-l_ll : expresion TK_COMA l_ll {}
+l_ll : expresion TK_SEPARADOR l_ll {}
 | expresion {}
 ;
 

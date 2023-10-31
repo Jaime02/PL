@@ -17,6 +17,8 @@ SUBRANGO             \.\.
 ENTONCES             ->
 ABRIR_PARENTESIS     \(
 CERRAR_PARENTESIS    \)
+PUNTO_COMA           ;
+PUNTO                \.
 
 OPR_SUMA             \+
 OPR_RESTA            \-
@@ -89,79 +91,82 @@ R_ENTERO             entero
 
 %%
 
-{ASIGNACION}         { printf("ASIGNACION"); }
-{SEPARADOR}          { printf("SEPARADOR"); }
-{DEFINICION}         { printf("DEFINICION"); }
-{SUBRANGO}           { printf("SUBRANGO"); }
-{ENTONCES}           { printf("ENTONCES"); }
-{ABRIR_PARENTESIS}   { printf("ABRIR_PARENTESIS"); }
-{CERRAR_PARENTESIS}  { printf("CERRAR_PARENTESIS"); }
-{OPR_SUMA}           { printf("OPR_SUMA"); }
-{OPR_RESTA}          { printf("OPR_RESTA"); }
-{OPR_PROD}           { printf("OPR_PROD"); }
-{OPR_MOD}            { printf("OPR_MOD"); }
-{OPR_DIV_REA}        { printf("OPR_DIV_REA"); }
-{OPR_IGUAL}          { printf("OPR_IGUAL"); }
-{OPR_MAYOR}          { printf("OPR_MAYOR"); }
-{OPR_MENOR}          { printf("OPR_MENOR"); }
-{OPR_MENOR_IGUAL}    { printf("OPR_MENOR_IGUAL"); }
-{OPR_MAYOR_IGUAL}    { printf("OPR_MAYOR_IGUAL"); }
-{OPR_DISTINTO}       { printf("OPR_DISTINTO"); }
-{ABRIR_TABLA}        { printf("ABRIR_TABLA"); }
-{CERRAR_TABLA}       { printf("CERRAR_TABLA"); }
-{BOOLEANO}           { printf("BOOLEANO"); }
-{SALTO}              { printf("\n"); }
+{ASIGNACION}         { return TK_ASIGNACION; }
+{SEPARADOR}          { return TK_SEPARADOR; }
+{DEFINICION}         { return TK_DEFINICION; }
+{SUBRANGO}           { return TK_SUBRANGO; }
+{ENTONCES}           { return TK_ENTONCES; }
+{ABRIR_PARENTESIS}   { return TK_ABRIR_PARENTESIS; }
+{CERRAR_PARENTESIS}  { return TK_CERRAR_PARENTESIS; }
+{OPR_SUMA}           { return TK_SUMA; }
+{OPR_RESTA}          { return TK_RESTA; }
+{OPR_PROD}           { return TK_PROD; }
+{OPR_MOD}            { return TK_MOD; }
+{OPR_DIV_REA}        { return TK_DIV_REA; }
+{OPR_IGUAL}          { return TK_IGUAL; }
+{OPR_MAYOR}          { return TK_MENOR; }
+{OPR_MENOR}          { return TK_MAYOR; }
+{OPR_MENOR_IGUAL}    { return TK_MENOR_IGUAL; }
+{OPR_MAYOR_IGUAL}    { return TK_MAYOR_IGUAL; }
+{OPR_DISTINTO}       { return TK_NO; }
+{ABRIR_TABLA}        { return TK_ABRIR_TABLA; }
+{CERRAR_TABLA}       { return TK_CERRAR_TABLA; }
+{BOOLEANO}           { return TK_BOOLEANO; }
+{SALTO}              { }
 
 {ENTERO}             { return TK_ENTERO; }
 {REAL}               { return TK_REAL; }
+{PUNTO_COMA}         { return TK_PUNTO_COMA; }
+{PUNTO}              { return TK_PUNTO; }
 
-{CARACTER}           { printf("CARACTER"); }
-{CADENA}             { printf("CADENA"); }
-{COMENTARIO}         { printf("COMENTARIO"); }
-{R_ACCION}           { printf("R_ACCION"); }
-{R_ALGORITMO}        { printf("R_ALGORITMO"); }
-{R_CONST}            { printf("R_CONST"); }
-{R_CONTINUAR}        { printf("R_CONTINUAR"); }
-{R_DE}               { printf("R_DE"); }
-{R_DEV}              { printf("R_DEV"); }
-{R_DIV}              { printf("R_DIV"); }
-{R_ENT}              { printf("R_ENT"); }
-{R_ES}               { printf("R_ES"); }
-{R_FACCION}          { printf("R_FACCION"); }
-{R_FALGORITMO}       { printf("R_FALGORITMO"); }
-{R_FALSO}            { printf("R_FALSO"); }
-{R_FCONST}           { printf("R_FCONST"); }
-{R_FFUNCION}         { printf("R_FFUNCION"); }
-{R_FMIENTRAS}        { printf("R_FMIENTRAS"); }
-{R_FPARA}            { printf("R_FPARA"); }
-{R_FSI}              { printf("R_FSI"); }
-{R_FTIPO}            { printf("R_FTIPO"); }
-{R_FTUPLA}           { printf("R_FTUPLA"); }
-{R_FUNCION}          { printf("R_FUNCION"); }
-{R_FVAR}             { printf("R_FVAR"); }
-{R_HACER}            { printf("R_HACER"); }
-{R_HASTA}            { printf("R_HASTA"); }
-{R_MIENTRAS}         { printf("R_MIENTRAS"); }
-{R_MOD}              { printf("R_MOD"); }
-{R_NO}               { printf("R_NO"); }
-{R_O}                { printf("R_O"); }
-{R_PARA}             { printf("R_PARA"); }
-{R_REF}              { printf("R_REF"); }
-{R_SAL}              { printf("R_SAL"); }
-{R_SI}               { printf("R_SI"); }
-{R_SINOSI}           { printf("R_SINOSI"); }
-{R_TABLA}            { printf("R_TABLA"); }
-{R_TIPO}             { printf("R_TIPO"); }
-{R_TUPLA}            { printf("R_TUPLA"); }
-{R_VAR}              { printf("R_VAR"); }
-{R_VERDADERO}        { printf("R_VERDADERO"); }
-{R_Y}                { printf("R_Y"); }
-{R_REAL}             { printf("R_REAL"); }
-{R_BOOLEANO}         { printf("R_BOOLEANO"); }
-{R_CADENA}           { printf("R_CADENA"); }
-{R_CARACTER}         { printf("R_CARACTER"); }
-{R_ENTERO}           { printf("R_ENTERO"); }
-{IDENTIFICADOR}      { printf("IDENTIFICADOR"); }
+
+{CARACTER}           { return TK_CARACTER; }
+{CADENA}             { return TK_CADENA; }
+{COMENTARIO}         { return TK_COMENTARIO; }
+{R_ACCION}           { return TK_ACCION; }
+{R_ALGORITMO}        { return TK_ALGORITMO; }
+{R_CONST}            { return TK_CONST; }
+{R_CONTINUAR}        { return TK_CONTINUAR; }
+{R_DE}               { return TK_DE; }
+{R_DEV}              { return TK_DEV; }
+{R_DIV}              { return TK_DIV; }
+{R_ENT}              { return TK_ENT; }
+{R_ES}               { return TK_ES; }
+{R_FACCION}          { return TK_FACCION; }
+{R_FALGORITMO}       { return TK_FALGORITMO; }
+{R_FALSO}            { return TK_FALSO; }
+{R_FCONST}           { return TK_FCONST; }
+{R_FFUNCION}         { return TK_FFUNCION; }
+{R_FMIENTRAS}        { return TK_FMIENTRAS; }
+{R_FPARA}            { return TK_FPARA; }
+{R_FSI}              { return TK_FSI; }
+{R_FTIPO}            { return TK_FTIPO; }
+{R_FTUPLA}           { return TK_FTUPLA; }
+{R_FUNCION}          { return TK_FUNCION; }
+{R_FVAR}             { return TK_FVAR; }
+{R_HACER}            { return TK_HACER; }
+{R_HASTA}            { return TK_HASTA; }
+{R_MIENTRAS}         { return TK_MIENTRAS; }
+{R_MOD}              { return TK_R_MOD; }
+{R_NO}               { return TK_NO; }
+{R_O}                { return TK_O; }
+{R_PARA}             { return TK_PARA; }
+{R_REF}              { return TK_REF; }
+{R_SAL}              { return TK_SAL; }
+{R_SI}               { return TK_SI; }
+{R_SINOSI}           { return TK_SINOSI; }
+{R_TABLA}            { return TK_TABLA; }
+{R_TIPO}             { return TK_TIPO; }
+{R_TUPLA}            { return TK_TUPLA; }
+{R_VAR}              { return TK_VAR; }
+{R_VERDADERO}        { return TK_VERDADERO; }
+{R_Y}                { return TK_Y; }
+{R_REAL}             { return TK_TIPO_BASE; }
+{R_BOOLEANO}         { return TK_TIPO_BASE; }
+{R_CADENA}           { return TK_CADENA; }
+{R_CARACTER}         { return TK_CARACTER; }
+{R_ENTERO}           { return TK_TIPO_BASE; }
+{IDENTIFICADOR}      { return TK_IDENTIFICADOR; }
 %%
 
 int yywrap(){}
