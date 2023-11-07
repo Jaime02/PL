@@ -8,8 +8,7 @@ void yyerror(const char *s);
 extern FILE* yyin;
 %}
 %define parse.error verbose
-%token TK_ENTERO
-%token TK_REAL
+
 %token TK_ASIGNACION
 %token TK_SEPARADOR
 %token TK_DEFINICION
@@ -74,18 +73,15 @@ extern FILE* yyin;
 %token TK_R_CADENA
 %token TK_R_ENTERO
 %token TK_IDENTIFICADOR
-%token TK_LITERAL_CARACTER
-%token TK_LITERAL_NUMERICO
 %token TK_LITERAL
 
-
-
 %%
-desc_algoritmo : TK_ALGORITMO TK_IDENTIFICADOR TK_PUNTO_COMA cabecera_alg bloque_alg TK_FALGORITMO {}
+
+desc_algoritmo : TK_ALGORITMO TK_IDENTIFICADOR TK_PUNTO_COMA cabecera_alg bloque_alg TK_FALGORITMO { }
 ;
 cabecera_alg : decl_globales decl_a_f decl_ent_sal TK_COMENTARIO {}
 ;
-bloque_alg : bloque TK_COMENTARIO {}
+bloque_alg : bloque TK_COMENTARIO { }
 ;
 decl_globales : decl_tipo decl_globales {}
 | decl_cte decl_globales {}
@@ -95,7 +91,7 @@ decl_a_f : accion_d decl_a_f {}
 | funcion_d decl_a_f {}
 | %empty {}
 ;
-bloque : declaraciones instrucciones {}
+bloque : declaraciones instrucciones { }
 ;
 declaraciones : decl_tipo declaraciones {}
 | decl_cte declaraciones {}
@@ -119,12 +115,12 @@ d_tipo : TK_TUPLA lista_campos TK_FTUPLA {}
 | TK_TIPO_BASE {}
 ;
 expresion_t : expresion {}
-| TK_LITERAL_CARACTER {}
+| TK_LITERAL {}
 ;
 lista_campos : TK_IDENTIFICADOR TK_DEFINICION d_tipo TK_PUNTO_COMA lista_campos {}
 | %empty {}
 ;
-lista_d_cte : TK_IDENTIFICADOR TK_IGUAL TK_LITERAL TK_PUNTO_COMA lista_d_cte {}
+lista_d_cte : TK_IDENTIFICADOR TK_OPREL TK_LITERAL TK_PUNTO_COMA lista_d_cte {}
 | %empty {}
 ;
 lista_d_var : lista_id TK_DEFINICION TK_IDENTIFICADOR TK_PUNTO_COMA lista_d_var {}
@@ -151,7 +147,7 @@ exp_a : exp_a TK_SUMA exp_a {}
 | exp_a TK_DIV exp_a {}
 | TK_ABRIR_PARENTESIS exp_a TK_CERRAR_PARENTESIS {}
 | operando {}
-| TK_LITERAL_NUMERICO {}
+| TK_LITERAL {}
 | TK_RESTA exp_a  {}
 | exp_a TK_Y exp_a {}
 | exp_a TK_O exp_a {}
@@ -160,7 +156,7 @@ exp_a : exp_a TK_SUMA exp_a {}
 | TK_FALSO {}
 | expresion TK_OPREL expresion {}
 ;
-expresion : exp_a{}
+expresion : exp_a {}
 | funcion_ll {}
 ;
 operando : TK_IDENTIFICADOR {}

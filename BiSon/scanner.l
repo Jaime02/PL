@@ -61,7 +61,7 @@ R_FCONST             fconst
 R_FFUNCION           ffuncion
 R_FMIENTRAS          fmientras
 R_FPARA              fpara
-R_FSI                fi
+R_FSI                fsi
 R_FTIPO              ftipo
 R_FTUPLA             ftupla
 R_FUNCION            funcion
@@ -103,25 +103,24 @@ R_ENTERO             entero
 {OPR_PROD}           { return TK_PROD; }
 {OPR_MOD}            { return TK_MOD; }
 {OPR_DIV_REA}        { return TK_DIV_REA; }
-{OPR_IGUAL}          { return TK_IGUAL; }
-{OPR_MAYOR}          { return TK_MENOR; }
-{OPR_MENOR}          { return TK_MAYOR; }
-{OPR_MENOR_IGUAL}    { return TK_MENOR_IGUAL; }
-{OPR_MAYOR_IGUAL}    { return TK_MAYOR_IGUAL; }
-{OPR_DISTINTO}       { return TK_NO; }
+{OPR_IGUAL}          { return TK_OPREL; }
+{OPR_MAYOR}          { return TK_OPREL; }
+{OPR_MENOR}          { return TK_OPREL; }
+{OPR_MENOR_IGUAL}    { return TK_OPREL; }
+{OPR_MAYOR_IGUAL}    { return TK_OPREL; }
+{OPR_DISTINTO}       { return TK_OPREL; }
 {ABRIR_TABLA}        { return TK_ABRIR_TABLA; }
 {CERRAR_TABLA}       { return TK_CERRAR_TABLA; }
 {BOOLEANO}           { return TK_BOOLEANO; }
 {SALTO}              { }
 
-{ENTERO}             { return TK_ENTERO; }
-{REAL}               { return TK_REAL; }
+{ENTERO}             { return TK_LITERAL; }
+{REAL}               { return TK_LITERAL; }
 {PUNTO_COMA}         { return TK_PUNTO_COMA; }
 {PUNTO}              { return TK_PUNTO; }
 
-
-{CARACTER}           { return TK_CARACTER; }
-{CADENA}             { return TK_CADENA; }
+{CARACTER}           { return TK_LITERAL; }
+{CADENA}             { return TK_LITERAL; }
 {COMENTARIO}         { return TK_COMENTARIO; }
 {R_ACCION}           { return TK_ACCION; }
 {R_ALGORITMO}        { return TK_ALGORITMO; }
