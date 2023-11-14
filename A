@@ -1,0 +1,18 @@
+
+void modificaTipoTablaSimbolos(int id, int tipo){
+    // la posicion en la TS al no borrar simbolos es la misma que el id
+    tablaSimbolos.simbolos[id].tipo = tipo;
+}
+
+int consultaTipo(char nombre[N_NOMBRE]){
+    int pos = obtenerPosicionSimbolo(nombre);
+    int tipo = tablaSimbolos.simbolos[pos].tipo;
+    return tipo;
+}
+
+void mostrarTablaSimbolos() {
+}
+
+char* obtenerNombreVariable(int id){
+    
+}
