@@ -3,11 +3,10 @@
 %{
 
 #include <stdio.h>
-#include "gramatica.tab.h"
+#include <string.h>
+#include "parser.tab.h"
 
 %}
-
-/* Definiciones gramaticales */
 
 LETRA                [a-z]
 CIFRA                [0-9]
@@ -46,7 +45,7 @@ COMENTARIO           \{(\/.|[^}])*\}
 
 BOOLEANO             (R_VERDADERO)|(R_FALSO)
 IDENTIFICADOR        {LETRA}({LETRA}|{CIFRA})*
-SALTO                \nR_CADENA
+SALTO                \n
 
 R_ACCION             accion
 R_ALGORITMO          algoritmo
@@ -104,8 +103,6 @@ R_ENTERO             entero
 {CERRAR_TABLA}       { return TK_CERRAR_TABLA; }
 {BOOLEANO}           { return TK_BOOLEANO; }
 {SALTO}              { }
-
-/* Operaciones binarias */
 {OPR_SUMA}           { return TK_SUMA; }
 {OPR_RESTA}          { return TK_RESTA; }
 {OPR_PROD}           { return TK_PROD; }
@@ -113,18 +110,17 @@ R_ENTERO             entero
 {OPR_DIV_REA}        { return TK_DIV_REA; }
 {OPR_DIV}            { return TK_DIV; }
 
-/* Operaciones relacionales */
-{OPR_IGUAL}          { yyval.oprel = OPR_IGUAL; return TK_OPREL; }
-{OPR_MAYOR}          { yyval.oprel = OPR_MAYOR; return TK_OPREL; }
-{OPR_MENOR}          { yyval.oprel = OPR_MENOR; return TK_OPREL; }
-{OPR_MENOR_IGUAL}    { yyval.oprel = OPR_MENOR_IGUAL; return TK_OPREL; }
-{OPR_MAYOR_IGUAL}    { yyval.oprel = OPR_MAYOR_IGUAL; return TK_OPREL; }
-{OPR_DISTINTO}       { yyval.oprel = OPR_DISTINTO; return TK_OPREL; }
+{OPR_IGUAL}          { yylval.oprel = OPR_IGUAL; return TK_OPREL; }
+{OPR_MAYOR}          { yylval.oprel = OPR_MAYOR; return TK_OPREL; }
+{OPR_MENOR}          { yylval.oprel = OPR_MENOR; return TK_OPREL; }
+{OPR_MENOR_IGUAL}    { yylval.oprel = OPR_MENOR_IGUAL; return TK_OPREL; }
+{OPR_MAYOR_IGUAL}    { yylval.oprel = OPR_MAYOR_IGUAL; return TK_OPREL; }
+{OPR_DISTINTO}       { yylval.oprel = OPR_DISTINTO; return TK_OPREL; }
 
-{ENTERO}             { yyval.literal = ENTERO; return TK_LITERAL; }
-{REAL}               { yyval.literal = REAL; return TK_LITERAL; }
-{CARACTER}           { yyval.literal = CARACTER; return TK_LITERAL; }
-{CADENA}             { yyval.literal = CADENA; return TK_LITERAL; }
+{ENTERO}             { yylval.literal = ENTERO; return TK_LITERAL; }
+{REAL}               { yylval.literal = REAL; return TK_LITERAL; }
+{CARACTER}           { yylval.literal = CARACTER; return TK_LITERAL; }
+{CADENA}             { yylval.literal = CADENA; return TK_LITERAL; }
 
 {PUNTO_COMA}         { return TK_PUNTO_COMA; }
 {PUNTO}              { return TK_PUNTO; }
@@ -154,7 +150,7 @@ R_ENTERO             entero
 {R_HASTA}            { return TK_HASTA; }
 {R_MIENTRAS}         { return TK_MIENTRAS; }
 {R_MOD}              { return TK_R_MOD; }
-{R_NO}               { return TR_CADENAK_NO; }
+{R_NO}               { return TK_NO; }
 {R_O}                { return TK_O; }
 {R_PARA}             { return TK_PARA; }
 {R_REF}              { return TK_REF; }
@@ -168,13 +164,11 @@ R_ENTERO             entero
 {R_VERDADERO}        { return TK_VERDADERO; }
 {R_Y}                { return TK_Y; }
 
-{IDENTIFICADOR}      { return TK_IDENTIFICADOR; }
+{R_CADENA}           { yylval.tipoBase = R_CADENA; return TK_TIPO_BASE; }
+{R_CARACTER}         { yylval.tipoBase = R_CARACTER; return TK_TIPO_BASE; }
+{R_REAL}             { yylval.tipoBase = R_REAL; return TK_TIPO_BASE; }
+{R_BOOLEANO}         { yylval.tipoBase = R_BOOLEANO; return TK_TIPO_BASE; }
+{R_ENTERO}           { yylval.tipoBase = R_ENTERO; return TK_TIPO_BASE; }
 
-{R_CADENA}           { yyval.tipoBase = R_CADENA; return TK_TIPO_BASE; }
-{R_CARACTER}         { yyval.tipoBase = R_CARACTER; return TK_TIPO_BASE; }
-{R_REAL}             { yyval.tipoBase = R_REAL; return TK_TIPO_BASE; }
-{R_BOOLEANO}         { yyval.tipoBase = R_BOOLEANO; return TK_TIPO_BASE; }
-{R_ENTERO}           { yyval.tipoBase = R_ENTERO; return TK_TIPO_BASE; }
+{IDENTIFICADOR}      { yylval.nombreVariable = strdup(yytext); return TK_IDENTIFICADOR; }
 %%
-
-int yywrap(){}
