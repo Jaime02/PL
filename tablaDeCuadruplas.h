@@ -9,7 +9,6 @@ typedef struct {
     int operando1;
     int operando2;
     int resultado;
-    int direccionSalto;
 } Cuadrupla;
 
 typedef struct {
@@ -20,8 +19,7 @@ typedef struct {
 TablaCuadruplas tablaDeCuadruplas;
 
 void inicializar_tabla_cuadruplas();
-int gen(int, int, int, int);
-int gen_nulo(int, int, int);
-void print_tabla_cuadruplas(FILE*);
+int generarCuadrupla(int, int, int, int);
+void printTablaCuadruplas();
 void backpatch(int[], int, int);
 void merge(int[], int, int[], int, int[]);

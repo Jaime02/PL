@@ -4,7 +4,7 @@ void inicializar_tabla_cuadruplas() {
     tablaDeCuadruplas.tamano = 0;
 }
 
-int gen(int operando1, int operador, int operando2, int resultado) {
+int generarCuadrupla(int operando1, int operador, int operando2, int resultado) {
     int pos = tablaDeCuadruplas.tamano;
     tablaDeCuadruplas.tamano++;
 
@@ -12,12 +12,11 @@ int gen(int operando1, int operador, int operando2, int resultado) {
     tablaDeCuadruplas.listaDeCuadruplas[pos].operador = operador;
     tablaDeCuadruplas.listaDeCuadruplas[pos].operando2 = operando2;
     tablaDeCuadruplas.listaDeCuadruplas[pos].resultado = resultado;
-    tablaDeCuadruplas.listaDeCuadruplas[pos].direccionSalto = -1;
 
     return pos;
 };
 
-void print_tabla_cuadruplas(FILE* salida) {
+void printTablaCuadruplas() {
 
 };
 
@@ -26,8 +25,8 @@ void backpatch(int* listaDeCuadruplas, int tamanoLista, int direccionSalto){
     // Si la direccion de salto es -1, le asigna la direccion pasada.
 
     for(int i = 0; i < tamanoLista; i++) {
-        if (tablaDeCuadruplas.listaDeCuadruplas[listaDeCuadruplas[i]].direccionSalto == -1) {
-            tablaDeCuadruplas.listaDeCuadruplas[listaDeCuadruplas[i]].direccionSalto = direccionSalto;
+        if (tablaDeCuadruplas.listaDeCuadruplas[listaDeCuadruplas[i]].resultado == -1) {
+            tablaDeCuadruplas.listaDeCuadruplas[listaDeCuadruplas[i]].resultado = direccionSalto;
         }
     }
 }

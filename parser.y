@@ -17,6 +17,8 @@ extern int yydebug;
 // Definir los tipos de datos
 %code requires {
     #include "tablaDeSimbolos.h"
+    #include "tablaDeCuadruplas.h"
+    #include "listaId.h"
 
     typedef enum {
         OPR_IGUAL,
@@ -35,22 +37,35 @@ extern int yydebug;
     } Literal;
 
     typedef enum {
-        R_CADENA,
-        R_CARACTER,
-        R_REAL,
-        R_BOOLEANO,
-        R_ENTERO
+        TIPO_CADENA,
+        TIPO_CARACTER,
+        TIPO_REAL,
+        TIPO_BOOLEANO,
+        TIPO_ENTERO
     } TipoBase;
+
+    typedef enum {
+        OPERADOR_INT_TO_REAL,
+        OPERADOR_NULO,
+    } Operaciones;
+
+    typedef struct {
+        int place;
+        TipoBase tipo;
+        int cuadrupla;
+    } TipoExpresion;
 }
 
 // Conjunto de tipos de datos
 %union {
     char* nombreVariable;
-
     Oprel oprel;
     Literal literal;
     TipoBase tipoBase;
+    TipoListaId listaId;
 }
+
+%type<listaId> lista_id
 
 %token TK_ASIGNACION
 %token TK_SEPARADOR
@@ -124,7 +139,7 @@ desc_algoritmo : TK_ALGORITMO TK_IDENTIFICADOR TK_PUNTO_COMA cabecera_alg bloque
 ;
 cabecera_alg : decl_globales decl_a_f decl_ent_sal TK_COMENTARIO {}
 ;
-bloque_alg : bloque TK_COMENTARIO { }
+bloque_alg : bloque TK_COMENTARIO {}
 ;
 decl_globales : decl_tipo decl_globales {}
 | decl_cte decl_globales {}
@@ -152,9 +167,7 @@ lista_d_tipo : TK_IDENTIFICADOR TK_IGUAL d_tipo TK_PUNTO_COMA lista_d_tipo {}
 ;
 d_tipo : TK_TUPLA lista_campos TK_FTUPLA {}
 | TK_TABLA TK_ABRIR_TABLA expresion_t TK_SUBRANGO expresion_t TK_CERRAR_TABLA TK_DE d_tipo {}
-| TK_IDENTIFICADOR {
-    // 
-}
+| TK_IDENTIFICADOR {}
 | expresion_t TK_DEFINICION expresion_t {}
 | TK_REF d_tipo {}
 | TK_TIPO_BASE {}
@@ -169,17 +182,34 @@ lista_d_cte : TK_IDENTIFICADOR TK_OPREL TK_LITERAL TK_PUNTO_COMA lista_d_cte {}
 | %empty {}
 ;
 lista_d_var : lista_id TK_DEFINICION TK_IDENTIFICADOR TK_PUNTO_COMA lista_d_var {
-    
+    // Si la lista de identificadores está vacía, no hacer nada
+    if (listaIdVacia($1)) {
+        return;
+    }
+
+    // Recorrer lista_id estableciendo TK_IDENTIFICADOR como tipo
+    for (int i = 0; i < listaIdTamano($1); i++) {
+        int id = listaIdObtener($1, i);
+        anadirATablaSimbolos(id, $3);
+        modificaTipoTablaSimbolos(id, $3);
+    }
 }
 | lista_id TK_DEFINICION d_tipo TK_PUNTO_COMA lista_d_var {}
 | %empty {}
 ;
 lista_id : TK_IDENTIFICADOR TK_SEPARADOR lista_id {
-    // Guardar el identificador 
-    $3.
+    if (listaIdVacia($3)) {
+        listaIdInicializar($3);  
+    } 
+    listaIdAnadir($3, $1);
+    $$ = $3;
 }
 | TK_IDENTIFICADOR {
-    // Añadir $1 a la pila
+    // Añadir $1 a la lista de identificadores
+    if (listaIdVacia($$)) {
+        listaIdInicializar($$);
+    }
+    listaIdAnadir($$, $1);    
 }
 ;
 decl_ent_sal : decl_ent {}
@@ -191,16 +221,75 @@ decl_ent : TK_ENT lista_d_var {}
 decl_sal : TK_SAL lista_d_var {}
 ;
 
-exp_a : exp_a TK_SUMA exp_a {}
+exp_a : exp_a TK_SUMA exp_a {
+    int posTemp = crearTemp();
+    $$.place = posTemp;
+    if ($1.tipo == TIPO_ENTERO && $3.tipo == TIPO_ENTERO) {
+        // Resultado: tipo entero
+        modificaTipoTablaSimbolos(posTemp, ENTERO);
+        // La expresión sigue siendo de tipo entero
+        $$.tipo = TIPO_ENTERO;
+        // Generar cuádrupla
+        $$.cuadrupla = generarCuadrupla($1.place, OPR_SUMA, $3.place, posTemp);
+    } else if ($1.tipo == TIPO_ENTERO && $3.tipo == TIPO_REAL) {
+        // Resultado: tipo real
+        modificaTipoTablaSimbolos(posTemp, REAL);
+        $$.tipo = TIPO_REAL;
+        // Cambiar $1 a real
+        $$.cuadrupla = generarCuadrupla($1.place, INT_A_REAL, OPERADOR_NULO, posTemp);
+        generarCuadrupla(posTemp, OPR_SUMA,  $3.place, posTemp);
+    } else if ($1.tipo == TIPO_REAL && $3.tipo == TIPO_ENTERO) {
+        // Resultado: tipo real
+        modificaTipoTablaSimbolos(posTemp, REAL);
+        $$.tipo = TIPO_REAL;
+        // Cambiar $1 a real
+        $$.cuadrupla = generarCuadrupla($3.place, INT_A_REAL, OPERADOR_NULO, posTemp);
+        generarCuadrupla(posTemp, OPR_SUMA,  $1.place, posTemp);
+    } else if ($1.tipo == TIPO_REAL && $3.tipo == TIPO_REAL) {
+        // Resultado: tipo real
+        modificaTipoTablaSimbolos(posTemp, REAL);
+        $$.tipo = TIPO_REAL;
+        $$.cuadrupla = generarCuadrupla($1.place, OPR_SUMA,  $3.place, posTemp);
+    } else {
+        // Error
+        yyerror("Error: tipos incompatibles en la expresión\n");
+    }
+}
 | exp_a TK_RESTA exp_a {}
 | exp_a TK_PROD exp_a {}
 | exp_a TK_DIV_REA exp_a {}
 | exp_a TK_R_MOD exp_a {}
 | exp_a TK_DIV exp_a {}
-| TK_ABRIR_PARENTESIS exp_a TK_CERRAR_PARENTESIS {}
-| operando {}
+| TK_ABRIR_PARENTESIS exp_a TK_CERRAR_PARENTESIS {
+    $$ = $2;
+}
+| operando {
+    // Guardar place, tipo y cuadrupla
+    $$.place = $1.place;
+    $$.tipo = $1.tipo;
+    $$.cuadrupla = $1.cuadrupla;
+}
 | TK_LITERAL {}
-| TK_RESTA exp_a  {}
+| TK_RESTA exp_a  {
+    int posTemp = crearTemp();
+    $$.place = posTemp;
+    if ($2.tipo == TIPO_ENTERO) {
+        // Resultado: tipo entero
+        modificaTipoTablaSimbolos(posTemp, ENTERO);
+        // La expresión sigue siendo de tipo entero
+        $$.tipo = TIPO_ENTERO;
+    } else if ($2.tipo == TIPO_REAL) {
+        // Resultado: tipo real
+        modificaTipoTablaSimbolos(posTemp, REAL);
+        $$.tipo = TIPO_REAL;
+    } else {
+        // Error
+        yyerror("Error: tipos incompatibles en la expresión\n");
+    }
+
+    // Generar cuádrupla
+    $$.cuadrupla = generarCuadrupla(0, OPR_RESTA, $2.place, posTemp);
+}
 | exp_a TK_Y exp_a {}
 | exp_a TK_O exp_a {}
 | TK_NO exp_a {}
@@ -211,23 +300,47 @@ exp_a : exp_a TK_SUMA exp_a {}
 expresion : exp_a {}
 | funcion_ll {}
 ;
-operando : TK_IDENTIFICADOR {}
+operando : TK_IDENTIFICADOR {
+    $$.place = buscarEnTablaSimbolos($1);
+    $$.tipo = getTipoTablaSimbolos($1);
+    $$.cuadrupla = tablaDeCuadruplas.tamano - 1;
+}
 | operando TK_PUNTO operando {}
 | operando TK_ABRIR_PARENTESIS expresion TK_CERRAR_PARENTESIS {}
 | operando TK_REF {}
 ;
 instrucciones : instruccion TK_PUNTO_COMA instrucciones {}
-| instruccion {}
+| instruccion {
+    // Solo hay una instrucción, instrucciones es instrucción
+    $$ = $1;
+}
 ;
 instruccion : TK_CONTINUAR {}
-| asignacion {}
+| asignacion {
+    $$ = $1;
+}
 | alternativa {}
 | iteracion {}
 | accion_ll {}
 ;
-asignacion : operando TK_ASIGNACION expresion {}
+asignacion : operando TK_ASIGNACION expresion {
+    // Guardar en operando $1 expresión $3
+    // La cuadrupla de asignacion es la de expresión
+    $$.cuadrupla = $3.cuadrupla;
+
+    // Evita asignar por ejemplo un booleano a un entero
+    if ($1.tipo == $3.tipo || 
+        ($1.tipo == TIPO_REAL && $3.tipo == TIPO_ENTERO) ||
+        ($1.tipo == TIPO_ENTERO && $3.tipo == TIPO_REAL)) {
+        gen($3.place, OPERADOR_ASIGNACION, OPERADOR_NULO, $1.place);
+    } else {
+        yyerror("Error en la asignación\n");
+    }
+}
 ;
-alternativa : TK_SI expresion TK_ENTONCES instrucciones lista_opciones TK_FSI {}
+alternativa : TK_SI expresion TK_ENTONCES instrucciones lista_opciones TK_FSI {
+    // backpatch($2.verdadero, 
+}
 ;
 lista_opciones : TK_SINOSI expresion TK_ENTONCES instrucciones lista_opciones {}
 | %empty {}
@@ -291,6 +404,7 @@ int main(int argc, char* argv[]) {
     return yyparse();
 }
 
-void yyerror (char const *s) {
+void yyerror(char const *s) {
     fprintf(stderr, "Error: %s\n", s);
+    exit(-1);
 }

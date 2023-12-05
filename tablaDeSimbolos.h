@@ -23,11 +23,11 @@ typedef struct {
 extern TablaDeSimbolos tablaDeSimbolos;
 
 void inicializarTablaDeSimbolos();
-int obtenerPosicionSimbolo(char*);
-int newtemp();
-int newvar(char*);
+int obtenerPosicionSimbolo(char[N_NOMBRE]);
+int crearSimbolo(char[N_NOMBRE]);
+int crearTemp();
 void modificaTipoTablaSimbolos(int, int);
-int consultarTipo(char*);
+int consultarTipo(char[N_NOMBRE]);
 void mostrarTablaSimbolos();
 char* obtenerNombreVariable(int);
 
