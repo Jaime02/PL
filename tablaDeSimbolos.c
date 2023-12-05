@@ -21,7 +21,7 @@ int obtenerPosicionSimbolo(char nombre[N_NOMBRE]) {
     return -1;
 }
 
-int crearSimbolo(char nombreVariable[N_NOMBRE]) {
+int crearSimbolo(char nombreVariable[N_NOMBRE], int tipo) {
     int pos = tablaDeSimbolos.numeroDeSimbolos + 1;
     if (pos > N_SIMBOLOS) {
         printf("Error: se ha superado el número máximo de símbolos.\n");
@@ -29,6 +29,7 @@ int crearSimbolo(char nombreVariable[N_NOMBRE]) {
     }
 
     tablaDeSimbolos.simbolos[pos].id = tablaDeSimbolos.numeroDeSimbolos;
+    tablaDeSimbolos.simbolos[pos].tipo = tipo;
 
     // strcpy: Destino, source
     strcpy(tablaDeSimbolos.simbolos[pos].nombre, nombreVariable);
@@ -38,15 +39,11 @@ int crearSimbolo(char nombreVariable[N_NOMBRE]) {
     return tablaDeSimbolos.simbolos[pos].id;
 }
 
-int crearTemp() {
+int crearTemp(int tipo) {
     char nombreVariable[N_NOMBRE];
     (tablaDeSimbolos.numeroDeSimbolos)++;
     sprintf(nombreVariable, "T%d", tablaDeSimbolos.numeroDeSimbolos);
-    return crearSimbolo(nombreVariable);
-}
-
-void modificaTipoTablaSimbolos(int id, int tipo) {
-    tablaDeSimbolos.simbolos[id].tipo = tipo;
+    return crearSimbolo(nombreVariable, tipo);
 }
 
 int consultarTipo(char nombre[N_NOMBRE]) {

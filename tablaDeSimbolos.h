@@ -1,5 +1,4 @@
-#ifndef TTTTT
-#define TTTTT
+#pragma once
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -24,11 +23,8 @@ extern TablaDeSimbolos tablaDeSimbolos;
 
 void inicializarTablaDeSimbolos();
 int obtenerPosicionSimbolo(char[N_NOMBRE]);
-int crearSimbolo(char[N_NOMBRE]);
+int crearSimbolo(char[N_NOMBRE], int tipo);
 int crearTemp();
-void modificaTipoTablaSimbolos(int, int);
 int consultarTipo(char[N_NOMBRE]);
 void mostrarTablaSimbolos();
 char* obtenerNombreVariable(int);
-
-#endif

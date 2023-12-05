@@ -16,3 +16,11 @@ void listaIdAnadir(TipoListaId* listaId, char* id) {
     strcpy(listaId->ids[listaId->longitud].nombre, id);
     listaId->longitud++;
 }
+
+int listaIdTamano(TipoListaId* listaId) {
+    return listaId->longitud;
+}
+
+Id* listaIdObtener(TipoListaId* listaId, int posicion) {
+    return &((listaId->ids)[posicion]);
+}

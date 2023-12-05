@@ -164,11 +164,11 @@ R_ENTERO             entero
 {R_VERDADERO}        { return TK_VERDADERO; }
 {R_Y}                { return TK_Y; }
 
-{R_CADENA}           { yylval.tipoBase = R_CADENA; return TK_TIPO_BASE; }
-{R_CARACTER}         { yylval.tipoBase = R_CARACTER; return TK_TIPO_BASE; }
-{R_REAL}             { yylval.tipoBase = R_REAL; return TK_TIPO_BASE; }
-{R_BOOLEANO}         { yylval.tipoBase = R_BOOLEANO; return TK_TIPO_BASE; }
-{R_ENTERO}           { yylval.tipoBase = R_ENTERO; return TK_TIPO_BASE; }
+{R_CADENA}           { yylval.tipoBase = TIPO_CADENA; return TK_TIPO_BASE; }
+{R_CARACTER}         { yylval.tipoBase = TIPO_CARACTER; return TK_TIPO_BASE; }
+{R_REAL}             { yylval.tipoBase = TIPO_REAL; return TK_TIPO_BASE; }
+{R_BOOLEANO}         { yylval.tipoBase = TIPO_BOOLEANO; return TK_TIPO_BASE; }
+{R_ENTERO}           { yylval.tipoBase = TIPO_ENTERO; return TK_TIPO_BASE; }
 
 {IDENTIFICADOR}      { yylval.nombreVariable = strdup(yytext); return TK_IDENTIFICADOR; }
 %%

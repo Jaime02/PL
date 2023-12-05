@@ -16,7 +16,6 @@ typedef struct {
     int tamano;
 } TablaCuadruplas;
 
-TablaCuadruplas tablaDeCuadruplas;
 
 void inicializar_tabla_cuadruplas();
 int generarCuadrupla(int, int, int, int);

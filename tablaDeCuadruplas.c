@@ -1,5 +1,7 @@
 #include "tablaDeCuadruplas.h"
 
+TablaCuadruplas tablaDeCuadruplas;
+
 void inicializar_tabla_cuadruplas() {
     tablaDeCuadruplas.tamano = 0;
 }
