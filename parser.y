@@ -8,6 +8,8 @@ int yylex();
 void yyerror(const char *s);
 extern FILE* yyin;
 extern int yydebug;
+FILE* salida;
+char output[100][100];
 
 #include "listaId.h"
 #include "tablaDeCuadruplas.h"
@@ -48,13 +50,17 @@ extern TablaCuadruplas tablaDeCuadruplas;
     } TipoBase;
 
     typedef enum {
-        OPERADOR_INT_A_REAL,
-        OPERADOR_NULO,
         OPERADOR_SUMA,
         OPERADOR_RESTA,
+        OPERADOR_PROD,
         OPERADOR_DIV,
-        OPERADOR_MULTIPLICACION,
+        OPERADOR_DIV_REA,
         OPERADOR_ASIGNACION,
+        OPERADOR_MOD,
+        OPERADOR_INT_A_REAL,
+        INPUT,
+        OUTPUT,
+        OPERADOR_NULO
     } Operaciones;
 
     typedef struct {
@@ -80,6 +86,7 @@ extern TablaCuadruplas tablaDeCuadruplas;
 }
 
 %type<listaId> lista_id
+%type<listaId> lista_d_var
 %type<expresion> exp_a
 %type<expresion> operando
 %type<expresion> expresion
@@ -106,9 +113,9 @@ extern TablaCuadruplas tablaDeCuadruplas;
 %token TK_ABRIR_PARENTESIS
 %token TK_CERRAR_PARENTESIS
 
-%token <TipoBase> TK_TIPO_BASE
-%left <Oprel> TK_OPREL
-%token <Literal> TK_LITERAL
+%token <tipoBase> TK_TIPO_BASE
+%left <oprel> TK_OPREL
+%token <literal> TK_LITERAL
 
 %token TK_PUNTO_COMA
 %left TK_PUNTO
@@ -158,7 +165,17 @@ extern TablaCuadruplas tablaDeCuadruplas;
 
 %%
 
-desc_algoritmo : TK_ALGORITMO TK_IDENTIFICADOR TK_PUNTO_COMA cabecera_alg bloque_alg TK_FALGORITMO { }
+desc_algoritmo : TK_ALGORITMO TK_IDENTIFICADOR TK_PUNTO_COMA cabecera_alg bloque_alg TK_FALGORITMO { 
+    mostrarTablaSimbolos();
+    int i;
+    i = 0;
+    while(strcmp(output[i], "-") != 0){
+        generarCuadrupla(obtenerPosicionSimbolo(output[i]),OUTPUT,0,200);
+        i++;
+    }
+    printTablaCuadruplas(salida);
+    fclose(salida);
+}
 ;
 cabecera_alg : decl_globales decl_a_f decl_ent_sal TK_COMENTARIO {}
 ;
@@ -192,7 +209,7 @@ d_tipo : TK_TUPLA lista_campos TK_FTUPLA {}
 | TK_IDENTIFICADOR {}
 | expresion_t TK_DEFINICION expresion_t {}
 | TK_REF d_tipo {}
-| TK_TIPO_BASE {}
+| TK_TIPO_BASE {$$ = $1;}
 ;
 expresion_t : expresion {}
 | TK_LITERAL {}
@@ -211,8 +228,10 @@ lista_d_var : lista_id TK_DEFINICION TK_IDENTIFICADOR TK_PUNTO_COMA lista_d_var 
         for (int i = 0; i < listaIdTamano(&$1); i++) {
             char* id = listaIdObtener(&$1, i);
             crearSimbolo(id, $3);
+            listaIdAnadir(&$5, id);
         }
     }
+    $$ = $5;
 }
 | %empty {}
 ;
@@ -224,20 +243,28 @@ lista_id : TK_IDENTIFICADOR TK_SEPARADOR lista_id {
     $$ = $3;
 }
 | TK_IDENTIFICADOR {
-    // Añadir $1 a la lista de identificadoresOPERADOR_ASIGNACION
+    // Añadir $1 a la lista de identificadores
     if (listaIdVacia(&$$)) {
         listaIdInicializar(&$$);
     }
-    listaIdAnadir(&$$, $1);    
+    listaIdAnadir(&$$, $1);
 }
 ;
 decl_ent_sal : decl_ent {}
 | decl_ent decl_sal {}
 | decl_sal {}
 ;
-decl_ent : TK_ENT lista_d_var {}
+decl_ent : TK_ENT lista_d_var { 
+    for (int i = 0; i < listaIdTamano(&$2); i++)
+        generarCuadrupla(obtenerPosicionSimbolo(listaIdObtener(&$2,i)),INPUT,0,200);
+}
 ;
-decl_sal : TK_SAL lista_d_var {}
+decl_sal : TK_SAL lista_d_var {
+    for (int i = 0; i < listaIdTamano(&$2); i++){
+        strcpy(output[i],listaIdObtener(&$2,i));
+        strcpy(output[i+1],"-");
+    }
+}
 ;
 exp_a : exp_a TK_SUMA exp_a {
     int posTemp;
@@ -253,14 +280,14 @@ exp_a : exp_a TK_SUMA exp_a {
         posTemp = crearTemp(TIPO_REAL);
         $$.tipo = TIPO_REAL;
         // Cambiar $1 a real
-        generarCuadrupla($1.place, OPERADOR_INT_A_REAL, OPERADOR_NULO, posTemp);
+        generarCuadrupla($1.place, OPERADOR_INT_A_REAL, 0, posTemp);
         generarCuadrupla(posTemp, OPERADOR_SUMA,  $3.place, posTemp);
     } else if ($1.tipo == TIPO_REAL && $3.tipo == TIPO_ENTERO) {
         // Resultado: tipo real
         posTemp = crearTemp(TIPO_REAL);
         $$.tipo = TIPO_REAL;
         // Cambiar $1 a real
-        generarCuadrupla($3.place, OPERADOR_INT_A_REAL, OPERADOR_NULO, posTemp);
+        generarCuadrupla($3.place, OPERADOR_INT_A_REAL, 0, posTemp);
         generarCuadrupla(posTemp, OPERADOR_SUMA,  $1.place, posTemp);
     } else if ($1.tipo == TIPO_REAL && $3.tipo == TIPO_REAL) {
         // Resultado: tipo real
@@ -273,11 +300,138 @@ exp_a : exp_a TK_SUMA exp_a {
     }
     $$.place = posTemp;
 }
-| exp_a TK_RESTA exp_a {}
-| exp_a TK_PROD exp_a {}
-| exp_a TK_DIV_REA exp_a {}
-| exp_a TK_R_MOD exp_a {}
-| exp_a TK_DIV exp_a {}
+| exp_a TK_RESTA exp_a {
+    int posTemp;
+    if ($1.tipo == TIPO_ENTERO && $3.tipo == TIPO_ENTERO) {
+        // Resultado: tipo entero
+        posTemp = crearTemp(TIPO_ENTERO);
+        // La expresión sigue siendo de tipo entero
+        $$.tipo = TIPO_ENTERO;
+        // Generar cuádrupla
+        generarCuadrupla($1.place, OPERADOR_RESTA, $3.place, posTemp);
+    } else if ($1.tipo == TIPO_ENTERO && $3.tipo == TIPO_REAL) {
+        // Resultado: tipo real
+        posTemp = crearTemp(TIPO_REAL);
+        $$.tipo = TIPO_REAL;
+        // Cambiar $1 a real
+        generarCuadrupla($1.place, OPERADOR_INT_A_REAL, 0, posTemp);
+        generarCuadrupla(posTemp, OPERADOR_RESTA,  $3.place, posTemp);
+    } else if ($1.tipo == TIPO_REAL && $3.tipo == TIPO_ENTERO) {
+        // Resultado: tipo real
+        posTemp = crearTemp(TIPO_REAL);
+        $$.tipo = TIPO_REAL;
+        // Cambiar $1 a real
+        generarCuadrupla($3.place, OPERADOR_INT_A_REAL, 0, posTemp);
+        generarCuadrupla(posTemp, OPERADOR_RESTA,  $1.place, posTemp);
+    } else if ($1.tipo == TIPO_REAL && $3.tipo == TIPO_REAL) {
+        // Resultado: tipo real
+        posTemp = crearTemp(TIPO_REAL);
+        $$.tipo = TIPO_REAL;
+        generarCuadrupla($1.place, OPERADOR_RESTA,  $3.place, posTemp);
+    } else {
+        // Error
+        yyerror("Error: tipos incompatibles en la expresión\n");
+    }
+    $$.place = posTemp;
+}
+| exp_a TK_PROD exp_a {
+    int posTemp;
+    if ($1.tipo == TIPO_ENTERO && $3.tipo == TIPO_ENTERO) {
+        // Resultado: tipo entero
+        posTemp = crearTemp(TIPO_ENTERO);
+        // La expresión sigue siendo de tipo entero
+        $$.tipo = TIPO_ENTERO;
+        // Generar cuádrupla
+        generarCuadrupla($1.place, OPERADOR_PROD, $3.place, posTemp);
+    } else if ($1.tipo == TIPO_ENTERO && $3.tipo == TIPO_REAL) {
+        // Resultado: tipo real
+        posTemp = crearTemp(TIPO_REAL);
+        $$.tipo = TIPO_REAL;
+        // Cambiar $1 a real
+        generarCuadrupla($1.place, OPERADOR_INT_A_REAL, 0, posTemp);
+        generarCuadrupla(posTemp, OPERADOR_PROD,  $3.place, posTemp);
+    } else if ($1.tipo == TIPO_REAL && $3.tipo == TIPO_ENTERO) {
+        // Resultado: tipo real
+        posTemp = crearTemp(TIPO_REAL);
+        $$.tipo = TIPO_REAL;
+        // Cambiar $1 a real
+        generarCuadrupla($3.place, OPERADOR_INT_A_REAL, 0, posTemp);
+        generarCuadrupla(posTemp, OPERADOR_PROD,  $1.place, posTemp);
+    } else if ($1.tipo == TIPO_REAL && $3.tipo == TIPO_REAL) {
+        // Resultado: tipo real
+        posTemp = crearTemp(TIPO_REAL);
+        $$.tipo = TIPO_REAL;
+        generarCuadrupla($1.place, OPERADOR_PROD,  $3.place, posTemp);
+    } else {
+        // Error
+        yyerror("Error: tipos incompatibles en la expresión\n");
+    }
+    $$.place = posTemp;
+}
+| exp_a TK_DIV_REA exp_a {
+    int posTemp;
+    if ($1.tipo == TIPO_ENTERO && $3.tipo == TIPO_ENTERO) {
+        // Resultado: tipo entero
+        posTemp = crearTemp(TIPO_ENTERO);
+        // La expresión sigue siendo de tipo entero
+        $$.tipo = TIPO_ENTERO;
+        // Generar cuádrupla
+        generarCuadrupla($1.place, OPERADOR_DIV_REA, $3.place, posTemp);
+    } else if ($1.tipo == TIPO_ENTERO && $3.tipo == TIPO_REAL) {
+        // Resultado: tipo real
+        posTemp = crearTemp(TIPO_REAL);
+        $$.tipo = TIPO_REAL;
+        // Cambiar $1 a real
+        generarCuadrupla($1.place, OPERADOR_INT_A_REAL, 0, posTemp);
+        generarCuadrupla(posTemp, OPERADOR_DIV_REA,  $3.place, posTemp);
+    } else if ($1.tipo == TIPO_REAL && $3.tipo == TIPO_ENTERO) {
+        // Resultado: tipo real
+        posTemp = crearTemp(TIPO_REAL);
+        $$.tipo = TIPO_REAL;
+        // Cambiar $1 a real
+        generarCuadrupla($3.place, OPERADOR_INT_A_REAL, 0, posTemp);
+        generarCuadrupla(posTemp, OPERADOR_DIV_REA,  $1.place, posTemp);
+    } else if ($1.tipo == TIPO_REAL && $3.tipo == TIPO_REAL) {
+        // Resultado: tipo real
+        posTemp = crearTemp(TIPO_REAL);
+        $$.tipo = TIPO_REAL;
+        generarCuadrupla($1.place, OPERADOR_DIV_REA,  $3.place, posTemp);
+    } else {
+        // Error
+        yyerror("Error: tipos incompatibles en la expresión\n");
+    }
+    $$.place = posTemp;
+}
+| exp_a TK_R_MOD exp_a {
+    int posTemp;
+    if ($1.tipo == TIPO_ENTERO && $3.tipo == TIPO_ENTERO) {
+        // Resultado: tipo entero
+        posTemp = crearTemp(TIPO_ENTERO);
+        // La expresión sigue siendo de tipo entero
+        $$.tipo = TIPO_ENTERO;
+        // Generar cuádrupla
+        generarCuadrupla($1.place, OPERADOR_MOD, $3.place, posTemp);
+    } else {
+        // Error
+        yyerror("Error: tipos incompatibles en la expresión\n");
+    }
+    $$.place = posTemp;
+}
+| exp_a TK_DIV exp_a {
+    int posTemp;
+    if ($1.tipo == TIPO_ENTERO && $3.tipo == TIPO_ENTERO) {
+        // Resultado: tipo entero
+        posTemp = crearTemp(TIPO_ENTERO);
+        // La expresión sigue siendo de tipo entero
+        $$.tipo = TIPO_ENTERO;
+        // Generar cuádrupla
+        generarCuadrupla($1.place, OPERADOR_DIV, $3.place, posTemp);
+    } else {
+        // Error
+        yyerror("Error: tipos incompatibles en la expresión\n");
+    }
+    $$.place = posTemp;
+}
 | TK_ABRIR_PARENTESIS exp_a TK_CERRAR_PARENTESIS {
     $$ = $2;
 }
@@ -303,7 +457,6 @@ exp_a : exp_a TK_SUMA exp_a {
         yyerror("Error: tipos incompatibles en la expresión\n");
     }
     $$.place = posTemp;
-
     // Generar cuádrupla
     generarCuadrupla(0, OPERADOR_RESTA, $2.place, posTemp);
 }
@@ -345,7 +498,7 @@ asignacion : operando TK_ASIGNACION expresion {
     if ($1.tipo == $3.tipo || 
         ($1.tipo == TIPO_REAL && $3.tipo == TIPO_ENTERO) ||
         ($1.tipo == TIPO_ENTERO && $3.tipo == TIPO_REAL)) {
-        generarCuadrupla($3.place, OPERADOR_ASIGNACION, OPERADOR_NULO, $1.place);
+        generarCuadrupla($3.place, OPERADOR_ASIGNACION, 0, $1.place);
     } else {
         yyerror("Error en la asignación\n");
     }
@@ -392,9 +545,9 @@ l_ll : expresion TK_SEPARADOR l_ll {}
 
 int main(int argc, char* argv[]) {
     // Activar modo debug
-    yydebug = 1;
+    //yydebug = 1;
 
-    FILE* salida = fopen("salida.txt", "w");
+    salida = fopen("salida.txt", "w");
     if (salida == NULL) {
         printf("Error: No se puede crear el fichero de salida");
         return -1;
@@ -412,6 +565,7 @@ int main(int argc, char* argv[]) {
     }
 
     inicializarTablaDeSimbolos();
+    tablaDeCuadruplas.tamano = 0;
 
     return yyparse();
 }

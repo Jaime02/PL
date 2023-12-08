@@ -17,8 +17,8 @@ typedef struct {
 } TablaCuadruplas;
 
 
-void inicializar_tabla_cuadruplas();
+void inicializarTablaCuadruplas();
 int generarCuadrupla(int, int, int, int);
-void printTablaCuadruplas();
+void printTablaCuadruplas(FILE* salida);
 void backpatch(int[], int, int);
 void merge(int[], int, int[], int, int[]);

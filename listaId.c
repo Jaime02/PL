@@ -1,6 +1,8 @@
 #include "listaId.h"
 
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 bool listaIdVacia(TipoListaId* listaId) { return listaId->longitud == 0; }
@@ -13,7 +15,7 @@ void listaIdAnadir(TipoListaId* listaId, char* id) {
         exit(-1);
     }
 
-    strcpy(listaId->ids[listaId->longitud].nombre, id);
+    strcpy(listaId->ids[listaId->longitud], id);
     listaId->longitud++;
 }
 
@@ -21,6 +23,6 @@ int listaIdTamano(TipoListaId* listaId) {
     return listaId->longitud;
 }
 
-Id* listaIdObtener(TipoListaId* listaId, int posicion) {
-    return &((listaId->ids)[posicion]);
+char* listaIdObtener(TipoListaId* listaId, int posicion) {
+    return ((listaId->ids)[posicion]);
 }
