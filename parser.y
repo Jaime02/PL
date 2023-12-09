@@ -6,6 +6,7 @@
 
 int yylex();
 void yyerror(const char *s);
+
 extern FILE* yyin;
 extern int yydebug;
 FILE* salida;
@@ -26,7 +27,7 @@ extern TablaCuadruplas tablaDeCuadruplas;
     #include "listaId.h"
 
     typedef enum {
-        OPR_IGUAL,
+        OPR_IGUAL = 11,
         OPR_MAYOR,
         OPR_MENOR,
         OPR_MENOR_IGUAL,
@@ -60,18 +61,23 @@ extern TablaCuadruplas tablaDeCuadruplas;
         OPERADOR_INT_A_REAL,
         INPUT,
         OUTPUT,
-        OPERADOR_NULO
+        OPERADOR_GOTO,
     } Operaciones;
 
     typedef struct {
         int place;
+        int falso[TAMANO_TABLA];
+        int numFalsos;
+        int verdadero[TAMANO_TABLA];
+        int numVerdaderos;
         TipoBase tipo;
     } TipoExpresion;
 
     typedef struct { 
         int cuadruplas[TAMANO_TABLA];
-        int numeroCuadruplas;
+        int siguiente;
     } TipoInstruccion;
+    
 }
 
 // Conjunto de tipos de datos
@@ -83,6 +89,8 @@ extern TablaCuadruplas tablaDeCuadruplas;
     TipoListaId listaId;
     TipoExpresion expresion;
     TipoInstruccion instruccion;
+    int entero;
+    int* listaEnteros;
 }
 
 %type<listaId> lista_id
@@ -94,7 +102,10 @@ extern TablaCuadruplas tablaDeCuadruplas;
 %type<instruccion> instrucciones
 %type<instruccion> instruccion
 %type<instruccion> asignacion
+%type<instruccion> alternativa
+%type<instruccion> lista_opciones
 %type<tipoBase> d_tipo
+%type<entero> M
 
 %token TK_ASIGNACION
 %token TK_SEPARADOR
@@ -255,8 +266,10 @@ decl_ent_sal : decl_ent {}
 | decl_sal {}
 ;
 decl_ent : TK_ENT lista_d_var { 
-    for (int i = 0; i < listaIdTamano(&$2); i++)
+    for (int i = 0; i < listaIdTamano(&$2); i++){
+        //printf("%d ",i);
         generarCuadrupla(obtenerPosicionSimbolo(listaIdObtener(&$2,i)),INPUT,0,200);
+    }
 }
 ;
 decl_sal : TK_SAL lista_d_var {
@@ -437,6 +450,12 @@ exp_a : exp_a TK_SUMA exp_a {
 }
 | operando {
     // Guardar place y tipo
+    if ($1.tipo == TIPO_BOOLEANO){
+        memcpy($$.falso, $1.falso, TAMANO_TABLA*sizeof(int));
+        $$.numFalsos = $1.numFalsos;
+        memcpy($$.verdadero, $1.verdadero, TAMANO_TABLA*sizeof(int));
+        $$.numVerdaderos = $1.numVerdaderos;
+    }
     $$.place = $1.place;
     $$.tipo = $1.tipo;
 }
@@ -460,17 +479,49 @@ exp_a : exp_a TK_SUMA exp_a {
     // Generar cuádrupla
     generarCuadrupla(0, OPERADOR_RESTA, $2.place, posTemp);
 }
-| exp_a TK_Y exp_a {}
-| exp_a TK_O exp_a {}
-| TK_NO exp_a {}
+| exp_a TK_Y M exp_a {
+    backpatch($1.verdadero, $1.numVerdaderos, $3);
+    merge($1.falso, $1.numFalsos, $4.falso, $4.numFalsos, $$.falso);
+    $$.numFalsos = $1.numFalsos + $4.numFalsos;
+    $$.numVerdaderos = $4.numVerdaderos;
+    memcpy($$.verdadero, $4.verdadero, TAMANO_TABLA*sizeof(int));
+}
+| exp_a TK_O M exp_a {
+    backpatch($1.falso, $1.numFalsos, $3);
+    merge($1.verdadero, $1.numVerdaderos, $4.verdadero, $4.numVerdaderos, $$.verdadero);
+    $$.numVerdaderos = $1.numVerdaderos + $4.numVerdaderos;
+    $$.numFalsos = $4.numFalsos;
+    memcpy($$.falso, $4.falso, TAMANO_TABLA*sizeof(int));
+}
+| TK_NO exp_a {
+    memcpy($$.verdadero, $2.falso, TAMANO_TABLA*sizeof(int));
+    $$.numVerdaderos = $2.numFalsos;
+    memcpy($$.falso, $2.verdadero, TAMANO_TABLA*sizeof(int));
+    $$.numFalsos = $2.numVerdaderos;
+}
 | TK_VERDADERO {}
 | TK_FALSO {}
-| expresion TK_OPREL expresion {}
+| expresion TK_OPREL expresion {
+    $$.verdadero[0] = tablaDeCuadruplas.tamano;
+    $$.numVerdaderos = 1;
+    $$.falso[0] = tablaDeCuadruplas.tamano+1;
+    $$.numFalsos = 1;
+    generarCuadrupla($1.place, $2, $3.place, -1);
+    generarCuadrupla(0,OPERADOR_GOTO,0,-1);
+}
 ;
 expresion : exp_a {}
 | funcion_ll {}
 ;
 operando : TK_IDENTIFICADOR {
+    if (consultarTipo($1) == TIPO_BOOLEANO){
+        $$.verdadero[0] = tablaDeCuadruplas.tamano;
+        $$.numVerdaderos = 1;
+        $$.falso[0] = tablaDeCuadruplas.tamano+1;
+        $$.numFalsos = 1;
+        //generarCuadrupla($1.place, OPERADOR_ASIGNACION, 0, -1);
+        generarCuadrupla(0,OPERADOR_GOTO,0,-1);
+    }
     $$.place = obtenerPosicionSimbolo($1);
     $$.tipo = consultarTipo($1);
 }
@@ -478,7 +529,10 @@ operando : TK_IDENTIFICADOR {
 | operando TK_ABRIR_PARENTESIS expresion TK_CERRAR_PARENTESIS {}
 | operando TK_REF {}
 ;
-instrucciones : instruccion TK_PUNTO_COMA instrucciones {}
+instrucciones : instruccion TK_PUNTO_COMA instrucciones {
+    $$.siguiente = $3.siguiente;
+    memcpy($$.cuadruplas, $3.cuadruplas,TAMANO_TABLA*sizeof(int));
+}
 | instruccion {
     // Solo hay una instrucción, instrucciones es instrucción
     $$ = $1;
@@ -496,20 +550,56 @@ asignacion : operando TK_ASIGNACION expresion {
     // Guardar en operando $1 expresión $3
     // Evita asignar por ejemplo un booleano a un entero
     if ($1.tipo == $3.tipo || 
-        ($1.tipo == TIPO_REAL && $3.tipo == TIPO_ENTERO) ||
-        ($1.tipo == TIPO_ENTERO && $3.tipo == TIPO_REAL)) {
+        ($1.tipo == TIPO_REAL && $3.tipo == TIPO_ENTERO)) {
+        if ($1.tipo == TIPO_BOOLEANO){
+            backpatch($3.falso, $3.numFalsos, tablaDeCuadruplas.tamano);
+            generarCuadrupla($3.place, OPERADOR_ASIGNACION, 0, $1.place);
+            generarCuadrupla(0, OPERADOR_GOTO, 0, tablaDeCuadruplas.tamano + 2);
+            backpatch($3.verdadero, $3.numVerdaderos, tablaDeCuadruplas.tamano);
+            generarCuadrupla($3.place, OPERADOR_ASIGNACION, 0, $1.place);
+        }
         generarCuadrupla($3.place, OPERADOR_ASIGNACION, 0, $1.place);
     } else {
         yyerror("Error en la asignación\n");
     }
 }
 ;
-alternativa : TK_SI expresion TK_ENTONCES instrucciones lista_opciones TK_FSI {
-    // backpatch($2.verdadero, 
+alternativa : TK_SI M expresion TK_ENTONCES M instrucciones lista_opciones TK_FSI {
+     backpatch($3.verdadero, $3.numVerdaderos, $5);
+     if ($6.siguiente != 0){
+        backpatch($3.falso, $3.numFalsos, $6.cuadruplas[$6.siguiente-1]);
+        merge($3.falso, $3.numFalsos, $6.cuadruplas, $6.siguiente, $$.cuadruplas);
+        $$.siguiente = $3.numFalsos + $6.siguiente;
+    } else {
+        backpatch($3.falso, $3.numFalsos, tablaDeCuadruplas.tamano);
+        int nextquad[1];
+        nextquad[0] = tablaDeCuadruplas.tamano;
+        merge($3.falso, $3.numFalsos, nextquad, 1, $$.cuadruplas);
+        $$.siguiente = $3.numFalsos+1;
+        generarCuadrupla(0, OPERADOR_GOTO, 0, -1);
+    }
+    //$$.cuadruplas[$$.siguiente] = $2;
+    //$$.siguiente++;
 }
 ;
-lista_opciones : TK_SINOSI expresion TK_ENTONCES instrucciones lista_opciones {}
-| %empty {}
+lista_opciones : TK_SINOSI M expresion TK_ENTONCES M instrucciones lista_opciones {
+    backpatch($3.verdadero, $3.numVerdaderos, $5);
+     if ($6.siguiente != 0){
+        backpatch($3.falso, $3.numFalsos, $6.cuadruplas[$6.siguiente-1]);
+        merge($3.falso, $3.numFalsos, $6.cuadruplas, $6.siguiente, $$.cuadruplas);
+        $$.siguiente = $3.numFalsos + $6.siguiente;
+    } else {
+        backpatch($3.falso, $3.numFalsos, tablaDeCuadruplas.tamano);
+        int nextquad[1];
+        nextquad[0] = tablaDeCuadruplas.tamano;
+        merge($3.falso, $3.numFalsos, nextquad, 1, $$.cuadruplas);
+        $$.siguiente = $3.numFalsos+1;
+        generarCuadrupla(0, OPERADOR_GOTO, 0, -1);
+    }
+    //$$.cuadruplas[$$.siguiente] = $2;
+    //$$.siguiente++;
+}
+| %empty {$$.siguiente == 0;}
 ;
 iteracion : it_cota_fija {}
 | it_cota_exp {}
@@ -539,6 +629,10 @@ funcion_ll : TK_IDENTIFICADOR TK_ABRIR_PARENTESIS l_ll TK_CERRAR_PARENTESIS {}
 ;
 l_ll : expresion TK_SEPARADOR l_ll {}
 | expresion {}
+;
+M : %empty {
+    $$ = tablaDeCuadruplas.tamano;
+}
 ;
 
 %%

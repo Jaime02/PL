@@ -4,7 +4,7 @@
 
 TablaCuadruplas tablaDeCuadruplas;
 
-char * nombresOperaciones[] = {" + ", " - ", " * ", " div ", " / ", " ", " mod ",  " int_to_real ", "input", "output", "NULO"};
+char * nombresOperaciones[] = {" + ", " - ", " * ", " div ", " / ", " ", " mod ",  " int_to_real ", "input", "output", "goto", "=", ">", "<", "<=", ">=", "!="};
 
 void inicializarTablaCuadruplas() {
     tablaDeCuadruplas.tamano = 0;
@@ -28,14 +28,25 @@ void printTablaCuadruplas(FILE* salida) {
     printf("\nTABLA DE CUADRUPLAS:\n\n");
     for (int i = 0; i < tamano; i++) {
         printf("%d)\t", i);
-        int resultado, direccion_salto;
+        int resultado, operador;
         char nombreOperador[100];
         char* nombreOperando1 = obtenerNombreVariable(tablaDeCuadruplas.listaDeCuadruplas[i].operando1);
         char* nombreOperando2 = obtenerNombreVariable(tablaDeCuadruplas.listaDeCuadruplas[i].operando2);
         char* nombreResultado = obtenerNombreVariable(tablaDeCuadruplas.listaDeCuadruplas[i].resultado);
         strcpy(nombreOperador,nombresOperaciones[tablaDeCuadruplas.listaDeCuadruplas[i].operador]);
         resultado = tablaDeCuadruplas.listaDeCuadruplas[i].resultado;
-        if (resultado != 200){
+        operador = tablaDeCuadruplas.listaDeCuadruplas[i].operador;
+        if (strcmp(nombreOperador,"goto") == 0){
+            if (resultado == -1){
+                printf("\n");
+            } else {
+                printf("goto %d\n", resultado);
+            }
+        } else if (strcmp(nombreOperador,"input") == 0){
+            printf("input %s\n", nombreOperando1);
+        } else if (strcmp(nombreOperador,"output") == 0){
+            printf("output %s\n", nombreOperando1);
+        } else if (operador < 11) {
             printf("%s := ", nombreResultado);
             if(strcmp("VACIO", nombreOperando1) != 0){
                 printf("%s", nombreOperando1);
@@ -44,24 +55,33 @@ void printTablaCuadruplas(FILE* salida) {
             if(strcmp("VACIO", nombreOperando2) != 0){
                 printf("%s\n", nombreOperando2);
             }else{printf("\n");}
-        } else if (strcmp(nombreOperador,"input") == 0){
-            printf("input %s\n", nombreOperando1);
-        } else if (strcmp(nombreOperador,"output") == 0){
-            printf("output %s\n", nombreOperando1);
+        } else {
+            printf("if %s %s %s goto %d\n", nombreOperando1, nombreOperador, nombreOperando2, resultado);
         }
     }
 
     //fichero 
     for (int i = 0; i < tamano; i++) {
         fprintf(salida, "%d)\t", i);
-        int resultado, direccion_salto;
+        int resultado, operador;
         char nombreOperador[100];
         char* nombreOperando1 = obtenerNombreVariable(tablaDeCuadruplas.listaDeCuadruplas[i].operando1);
         char* nombreOperando2 = obtenerNombreVariable(tablaDeCuadruplas.listaDeCuadruplas[i].operando2);
         char* nombreResultado = obtenerNombreVariable(tablaDeCuadruplas.listaDeCuadruplas[i].resultado);
         strcpy(nombreOperador,nombresOperaciones[tablaDeCuadruplas.listaDeCuadruplas[i].operador]);
         resultado = tablaDeCuadruplas.listaDeCuadruplas[i].resultado;
-        if (resultado != 200){
+        operador = tablaDeCuadruplas.listaDeCuadruplas[i].operador;
+        if (strcmp(nombreOperador,"goto") == 0){
+            if (resultado == -1){
+                fprintf(salida, "\n");
+            } else {
+                fprintf(salida, "goto %d\n", resultado);
+            }
+        } else if (strcmp(nombreOperador,"input") == 0){
+            fprintf(salida, "input %s\n", nombreOperando1);
+        } else if (strcmp(nombreOperador,"output") == 0){
+            fprintf(salida, "output %s\n", nombreOperando1);
+        } else if (operador < 11) {
             fprintf(salida, "%s := ", nombreResultado);
             if(strcmp("VACIO", nombreOperando1) != 0){
                 fprintf(salida, "%s", nombreOperando1);
@@ -70,10 +90,8 @@ void printTablaCuadruplas(FILE* salida) {
             if(strcmp("VACIO", nombreOperando2) != 0){
                 fprintf(salida, "%s\n", nombreOperando2);
             }else{fprintf(salida, "\n");}
-        } else if (strcmp(nombreOperador,"input") == 0){
-            fprintf(salida, "input %s\n", nombreOperando1);
-        } else if (strcmp(nombreOperador,"output") == 0){
-            fprintf(salida, "output %s\n", nombreOperando1);
+        } else {
+            fprintf(salida, "if %s %s %s goto %d\n", nombreOperando1, nombreOperador, nombreOperando2, resultado);
         }
     }
 
