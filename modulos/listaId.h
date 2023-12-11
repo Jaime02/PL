@@ -12,3 +12,4 @@ void listaIdInicializar(TipoListaId* listaId);
 void listaIdAnadir(TipoListaId* listaId, char* id);
 char* listaIdObtener(TipoListaId* listaId, int posicion);
 int listaIdTamano(TipoListaId* listaId);
+void listaIdCopiar(TipoListaId* listaIdDestino, TipoListaId* listaIdOrigen);

@@ -9,11 +9,10 @@ void yyerror(const char *s);
 
 extern FILE* yyin;
 extern int yydebug;
-FILE* salida;
 char output[100][100];
 
-#include "listaId.h"
-#include "tablaDeCuadruplas.h"
+#include "modulos/listaId.h"
+#include "modulos/tablaDeCuadruplas.h"
 extern TablaCuadruplas tablaDeCuadruplas;
 
 %}
@@ -22,67 +21,15 @@ extern TablaCuadruplas tablaDeCuadruplas;
 
 // Definir los tipos de datos
 %code requires {
-    #include "tablaDeSimbolos.h"
-    #include "tablaDeCuadruplas.h"
-    #include "listaId.h"
-
-    typedef enum {
-        OPR_IGUAL = 11,
-        OPR_MAYOR,
-        OPR_MENOR,
-        OPR_MENOR_IGUAL,
-        OPR_MAYOR_IGUAL,
-        OPR_DISTINTO
-    } Oprel;
-
-    typedef enum {
-        ENTERO,
-        REAL,
-        CARACTER,
-        CADENA
-    } Literal;
-
-    typedef enum {
-        TIPO_CADENA,
-        TIPO_CARACTER,
-        TIPO_REAL,
-        TIPO_BOOLEANO,
-        TIPO_ENTERO
-    } TipoBase;
-
-    typedef enum {
-        OPERADOR_SUMA,
-        OPERADOR_RESTA,
-        OPERADOR_PROD,
-        OPERADOR_DIV,
-        OPERADOR_DIV_REA,
-        OPERADOR_ASIGNACION,
-        OPERADOR_MOD,
-        OPERADOR_INT_A_REAL,
-        INPUT,
-        OUTPUT,
-        OPERADOR_GOTO,
-    } Operaciones;
-
-    typedef struct {
-        int place;
-        int falso[TAMANO_TABLA];
-        int numFalsos;
-        int verdadero[TAMANO_TABLA];
-        int numVerdaderos;
-        TipoBase tipo;
-    } TipoExpresion;
-
-    typedef struct { 
-        int cuadruplas[TAMANO_TABLA];
-        int siguiente;
-    } TipoInstruccion;
-    
+    #include "modulos/tablaDeSimbolos.h"
+    #include "modulos/tablaDeCuadruplas.h"
+    #include "modulos/definiciones.h"
+    #include "modulos/listaId.h"
 }
 
 // Conjunto de tipos de datos
 %union {
-    char* nombreVariable;
+    char nombreVariable[100];
     Oprel oprel;
     Literal literal;
     TipoBase tipoBase;
@@ -178,14 +125,7 @@ extern TablaCuadruplas tablaDeCuadruplas;
 
 desc_algoritmo : TK_ALGORITMO TK_IDENTIFICADOR TK_PUNTO_COMA cabecera_alg bloque_alg TK_FALGORITMO { 
     mostrarTablaSimbolos();
-    int i;
-    i = 0;
-    while(strcmp(output[i], "-") != 0){
-        generarCuadrupla(obtenerPosicionSimbolo(output[i]),OUTPUT,0,200);
-        i++;
-    }
-    printTablaCuadruplas(salida);
-    fclose(salida);
+    imprimirTablaCuadruplas(stdout);
 }
 ;
 cabecera_alg : decl_globales decl_a_f decl_ent_sal TK_COMENTARIO {}
@@ -233,31 +173,26 @@ lista_d_cte : TK_IDENTIFICADOR TK_OPREL TK_LITERAL TK_PUNTO_COMA lista_d_cte {}
 ;
 lista_d_var : lista_id TK_DEFINICION TK_IDENTIFICADOR TK_PUNTO_COMA lista_d_var {}
 | lista_id TK_DEFINICION d_tipo TK_PUNTO_COMA lista_d_var {
-    // Si la lista de identificadores está vacía, no hacer nada
-    if (!listaIdVacia(&$1)) {
-        // Recorrer lista_id estableciendo TK_IDENTIFICADOR como tipo
-        for (int i = 0; i < listaIdTamano(&$1); i++) {
-            char* id = listaIdObtener(&$1, i);
-            crearSimbolo(id, $3);
-            listaIdAnadir(&$5, id);
-        }
+    // Recorrer lista_id estableciendo TK_IDENTIFICADOR como tipo
+    for (int i = 0; i < listaIdTamano(&$1); i++) {
+        char* id = listaIdObtener(&$1, i);
+        // $3 es TK_IDENTIFICADOR, que es el tipo
+        // printf("Creando %s\n", id);
+        crearSimbolo(id, $3);
     }
-    $$ = $5;
+    // Copiar: destino, fuente
+    listaIdCopiar(&$$, &$1);
 }
 | %empty {}
 ;
 lista_id : TK_IDENTIFICADOR TK_SEPARADOR lista_id {
-    if (listaIdVacia(&$3)) {
-        listaIdInicializar(&$3);  
-    } 
     listaIdAnadir(&$3, $1);
     $$ = $3;
 }
 | TK_IDENTIFICADOR {
     // Añadir $1 a la lista de identificadores
-    if (listaIdVacia(&$$)) {
-        listaIdInicializar(&$$);
-    }
+    listaIdInicializar(&$$);
+
     listaIdAnadir(&$$, $1);
 }
 ;
@@ -267,15 +202,18 @@ decl_ent_sal : decl_ent {}
 ;
 decl_ent : TK_ENT lista_d_var { 
     for (int i = 0; i < listaIdTamano(&$2); i++){
-        //printf("%d ",i);
-        generarCuadrupla(obtenerPosicionSimbolo(listaIdObtener(&$2,i)),INPUT,0,200);
+        char* nombre = listaIdObtener(&$2, i);
+        int posicionSimbolo = obtenerPosicionSimbolo(nombre);
+        // printf("Posición símbolo: %d\n", posicionSimbolo);
+        generarCuadrupla(posicionSimbolo, INPUT, 0, 200);
     }
 }
 ;
 decl_sal : TK_SAL lista_d_var {
     for (int i = 0; i < listaIdTamano(&$2); i++){
-        strcpy(output[i],listaIdObtener(&$2,i));
-        strcpy(output[i+1],"-");
+        char* nombre = listaIdObtener(&$2, i);
+        int posicionSimbolo = obtenerPosicionSimbolo(nombre);
+        generarCuadrupla(posicionSimbolo, OUTPUT, 0, 200);
     }
 }
 ;
@@ -549,18 +487,18 @@ instruccion : TK_CONTINUAR {}
 asignacion : operando TK_ASIGNACION expresion {
     // Guardar en operando $1 expresión $3
     // Evita asignar por ejemplo un booleano a un entero
-    if ($1.tipo == $3.tipo || 
-        ($1.tipo == TIPO_REAL && $3.tipo == TIPO_ENTERO)) {
+    if ($1.tipo == $3.tipo || ($1.tipo == TIPO_REAL && $3.tipo == TIPO_ENTERO)) {
         if ($1.tipo == TIPO_BOOLEANO){
             backpatch($3.falso, $3.numFalsos, tablaDeCuadruplas.tamano);
-            generarCuadrupla($3.place, OPERADOR_ASIGNACION, 0, $1.place);
-            generarCuadrupla(0, OPERADOR_GOTO, 0, tablaDeCuadruplas.tamano + 2);
+            generarCuadrupla($3.place, OPERADOR_ASIGNACION, -1, $1.place);
+            generarCuadrupla(-1, OPERADOR_GOTO, -1, tablaDeCuadruplas.tamano + 2);
+            
             backpatch($3.verdadero, $3.numVerdaderos, tablaDeCuadruplas.tamano);
-            generarCuadrupla($3.place, OPERADOR_ASIGNACION, 0, $1.place);
+            generarCuadrupla($3.place, OPERADOR_ASIGNACION, -1, $1.place);
         }
-        generarCuadrupla($3.place, OPERADOR_ASIGNACION, 0, $1.place);
+        generarCuadrupla($3.place, OPERADOR_ASIGNACION, -1, $1.place);
     } else {
-        yyerror("Error en la asignación\n");
+        yyerror("Error en la asignación: tipos incompatibles\n");
     }
 }
 ;
@@ -641,12 +579,6 @@ int main(int argc, char* argv[]) {
     // Activar modo debug
     //yydebug = 1;
 
-    salida = fopen("salida.txt", "w");
-    if (salida == NULL) {
-        printf("Error: No se puede crear el fichero de salida");
-        return -1;
-    }
-
     if (argc <= 1) {
         printf("Error: No se ha recibido un fichero de entrada");
         return -1;
@@ -661,7 +593,14 @@ int main(int argc, char* argv[]) {
     inicializarTablaDeSimbolos();
     tablaDeCuadruplas.tamano = 0;
 
-    return yyparse();
+    int result = yyparse();
+    if (result == 0) {
+        printf("Parseo correcto\n");
+    } else {
+        printf("Parseo incorrecto\n");
+    }
+
+    return result;
 }
 
 void yyerror(char const *s) {

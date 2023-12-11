@@ -170,5 +170,5 @@ R_ENTERO             entero
 {R_BOOLEANO}         { yylval.tipoBase = TIPO_BOOLEANO; return TK_TIPO_BASE; }
 {R_ENTERO}           { yylval.tipoBase = TIPO_ENTERO; return TK_TIPO_BASE; }
 
-{IDENTIFICADOR}      { yylval.nombreVariable = strdup(yytext); return TK_IDENTIFICADOR; }
+{IDENTIFICADOR}      { strcpy(yylval.nombreVariable, yytext); return TK_IDENTIFICADOR; }
 %%
