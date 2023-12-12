@@ -18,7 +18,10 @@ ejecutar1:
 	./compilador ejemplos/programa1.mdv
 
 ejecutar1D:
-	$(VALGRIND) ./compilador ejemplos/programa1D.mdv
+	./compilador ejemplos/programa1D.mdv
+
+ejecutarAritmeticas:
+	./compilador ejemplos/aritmeticas.mdv
 
 clean:
 	rm -f lexer.o parser.tab.c parser.tab.h parser.output lex.yy.c compilador.o valgrind-out.txt compilador
