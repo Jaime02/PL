@@ -6,7 +6,7 @@
 
 TablaCuadruplas tablaDeCuadruplas;
 
-char* nombresOperaciones[] = {"+", "-", "*", "div", "/", ":=", "mod", "int_to_real", "input", "output", "goto", "=", ">", "<", "<=", ">=", "!="};
+char* nombresOperaciones[] = {"+", "-", "*", "div", "/", " ", "mod", "int_to_real", "input", "output", "goto", "falso", "verdadero", "=", ">", "<", "<=", ">=", "!="};
 
 void inicializarTablaCuadruplas() { tablaDeCuadruplas.tamano = 0; }
 
@@ -40,18 +40,23 @@ void imprimirTablaCuadruplas(FILE* salida) {
         strcpy(nombreOperador, nombresOperaciones[cuadrupla.operador]);
         int resultado = cuadrupla.resultado;
 
-        fprintf(salida, "Operador (%d): %s  --- ", cuadrupla.operador, nombreOperador);
-
         if (strcmp(nombreOperador, "goto") == 0) {
             fprintf(salida, "goto %d\n", resultado);
         } else if (strcmp(nombreOperador, "input") == 0) {
             fprintf(salida, "input %s\n", nombreOperando1);
         } else if (strcmp(nombreOperador, "output") == 0) {
             fprintf(salida, "output %s\n", nombreOperando1);
-        } else if (strcmp(nombreOperador, ":=") == 0) {
-            fprintf(salida, "%s := %s\n", nombreResultado, nombreOperando1);
+        } else if (cuadrupla.operador < 13) {
+            fprintf(salida, "%s := ", nombreResultado);
+            if(strcmp("VACIO", nombreOperando1) != 0){
+                fprintf(salida,"%s", nombreOperando1);
+            fprintf(salida, " %s ", nombreOperador);
+            if(strcmp("VACIO", nombreOperando2) != 0){
+                fprintf(salida,"%s\n", nombreOperando2);
+            } else {printf("\n");}
         } else if (strcmp(nombreOperador, "if") == 0) {
             fprintf(salida, "if %s %s %s goto %d\n", nombreOperando1, nombreOperador, nombreOperando2, resultado);
+        }
         }
     }
     fprintf(salida, "\n");
