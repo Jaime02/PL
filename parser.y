@@ -3,6 +3,8 @@
 #define YYDEBUG 1
 #include <ctype.h>
 #include <stdio.h>
+#include "modulos/listaId.h"
+#include "modulos/tablaDeCuadruplas.h"
 
 int yylex();
 void yyerror(const char *s);
@@ -10,9 +12,6 @@ void yyerror(const char *s);
 extern FILE* yyin;
 extern int yydebug;
 char output[100][100];
-
-#include "modulos/listaId.h"
-#include "modulos/tablaDeCuadruplas.h"
 extern TablaCuadruplas tablaDeCuadruplas;
 
 %}
@@ -437,8 +436,10 @@ exp_a : exp_a TK_SUMA exp_a {
     memcpy($$.falso, $2.verdadero, TAMANO_TABLA*sizeof(int));
     $$.numFalsos = $2.numVerdaderos;
 }
-| TK_VERDADERO {}
-| TK_FALSO {}
+| TK_VERDADERO {
+}
+| TK_FALSO {
+}
 | expresion TK_OPREL expresion {
     $$.verdadero[0] = tablaDeCuadruplas.tamano;
     $$.numVerdaderos = 1;
@@ -488,14 +489,15 @@ asignacion : operando TK_ASIGNACION expresion {
     // Guardar en operando $1 expresión $3
     // Evita asignar por ejemplo un booleano a un entero
     if ($1.tipo == $3.tipo || ($1.tipo == TIPO_REAL && $3.tipo == TIPO_ENTERO)) {
-        if ($1.tipo == TIPO_BOOLEANO){
+        if ($1.tipo == TIPO_BOOLEANO) {
             backpatch($3.falso, $3.numFalsos, tablaDeCuadruplas.tamano);
-            generarCuadrupla($3.place, OPERADOR_ASIGNACION, -1, $1.place);
+            generarCuadrupla(-1, OPERADOR_FALSO, -1, $1.place);
             generarCuadrupla(-1, OPERADOR_GOTO, -1, tablaDeCuadruplas.tamano + 2);
             
             backpatch($3.verdadero, $3.numVerdaderos, tablaDeCuadruplas.tamano);
-            generarCuadrupla($3.place, OPERADOR_ASIGNACION, -1, $1.place);
+            generarCuadrupla(-1, OPERADOR_VERDADERO, -1, $1.place);
         }
+
         generarCuadrupla($3.place, OPERADOR_ASIGNACION, -1, $1.place);
     } else {
         yyerror("Error en la asignación: tipos incompatibles\n");
