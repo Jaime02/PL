@@ -23,6 +23,12 @@ ejecutar1D:
 ejecutarAritmeticas:
 	./compilador ejemplos/aritmeticas.mdv
 
+ejecutar2:
+	./compilador ejemplos/programa2.mdv
+
+ejecutarBooleanas:
+	./compilador ejemplos/booleanas.mdv
+
 clean:
 	rm -f lexer.o parser.tab.c parser.tab.h parser.output lex.yy.c compilador.o valgrind-out.txt compilador
 

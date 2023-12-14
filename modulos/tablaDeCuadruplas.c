@@ -6,7 +6,7 @@
 
 TablaCuadruplas tablaDeCuadruplas;
 
-char* nombresOperaciones[] = {"+", "-", "*", "div", "/", " ", "mod", "int_to_real", "input", "output", "goto", "falso", "verdadero", "=", ">", "<", "<=", ">=", "!="};
+char* nombresOperaciones[] = {"+", "-", "*", "div", "/", " ", "mod", "int_to_real", "input", "output", "goto", "falso", "verdadero", "if", "=", ">", "<", "<=", ">=", "!="};
 
 void inicializarTablaCuadruplas() { tablaDeCuadruplas.tamano = 0; }
 
@@ -50,16 +50,17 @@ void imprimirTablaCuadruplas(FILE* salida) {
             fprintf(salida, "%s := ", nombreResultado);
             if(strcmp("VACIO", nombreOperando1) != 0){
                 fprintf(salida,"%s", nombreOperando1);
+            }
             fprintf(salida, " %s ", nombreOperador);
             if(strcmp("VACIO", nombreOperando2) != 0){
                 fprintf(salida,"%s\n", nombreOperando2);
-            } else {printf("\n");}
-        } else if (strcmp(nombreOperador, "if") == 0) {
+            } else {fprintf(salida,"\n");}
+        }  else if (strcmp("if", nombreOperador) == 0){
+            fprintf(salida, "if %s := true goto %d\n", nombreOperando1, resultado);
+        } else {
             fprintf(salida, "if %s %s %s goto %d\n", nombreOperando1, nombreOperador, nombreOperando2, resultado);
         }
-        }
     }
-    fprintf(salida, "\n");
 };
 
 void backpatch(int* listaDeCuadruplas, int tamanoLista, int direccionSalto) {

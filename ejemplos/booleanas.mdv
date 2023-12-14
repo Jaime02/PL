@@ -1,0 +1,17 @@
+algoritmo booleanos;
+ent c: booleano;
+sal c: booleano;
+{Prec: nada}
+    var
+        a,b: booleano;
+    fvar;
+    c := no a;
+    c := a y no b;
+    c := a o b;
+    c := a o no b;
+
+    c := a o b y c;
+    c := a y b
+
+{Post: nada}
+falgoritmo

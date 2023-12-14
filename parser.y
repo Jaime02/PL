@@ -48,6 +48,8 @@ extern TablaCuadruplas tablaDeCuadruplas;
 %type<instruccion> instrucciones
 %type<instruccion> instruccion
 %type<instruccion> asignacion
+%type<instruccion> iteracion
+%type<instruccion> it_cota_exp
 %type<instruccion> alternativa
 %type<instruccion> lista_opciones
 %type<tipoBase> d_tipo
@@ -204,7 +206,7 @@ decl_ent : TK_ENT lista_d_var {
         char* nombre = listaIdObtener(&$2, i);
         int posicionSimbolo = obtenerPosicionSimbolo(nombre);
         // printf("Posición símbolo: %d\n", posicionSimbolo);
-        generarCuadrupla(posicionSimbolo, INPUT, 0, 200);
+        generarCuadrupla(posicionSimbolo, INPUT, -1, 200);
     }
 }
 ;
@@ -212,7 +214,7 @@ decl_sal : TK_SAL lista_d_var {
     for (int i = 0; i < listaIdTamano(&$2); i++){
         char* nombre = listaIdObtener(&$2, i);
         int posicionSimbolo = obtenerPosicionSimbolo(nombre);
-        generarCuadrupla(posicionSimbolo, OUTPUT, 0, 200);
+        generarCuadrupla(posicionSimbolo, OUTPUT, -1, 200);
     }
 }
 ;
@@ -230,14 +232,14 @@ exp_a : exp_a TK_SUMA exp_a {
         posTemp = crearTemp(TIPO_REAL);
         $$.tipo = TIPO_REAL;
         // Cambiar $1 a real
-        generarCuadrupla($1.place, OPERADOR_INT_A_REAL, 0, posTemp);
+        generarCuadrupla($1.place, OPERADOR_INT_A_REAL, -1, posTemp);
         generarCuadrupla(posTemp, OPERADOR_SUMA,  $3.place, posTemp);
     } else if ($1.tipo == TIPO_REAL && $3.tipo == TIPO_ENTERO) {
         // Resultado: tipo real
         posTemp = crearTemp(TIPO_REAL);
         $$.tipo = TIPO_REAL;
         // Cambiar $1 a real
-        generarCuadrupla($3.place, OPERADOR_INT_A_REAL, 0, posTemp);
+        generarCuadrupla($3.place, OPERADOR_INT_A_REAL, -1, posTemp);
         generarCuadrupla(posTemp, OPERADOR_SUMA,  $1.place, posTemp);
     } else if ($1.tipo == TIPO_REAL && $3.tipo == TIPO_REAL) {
         // Resultado: tipo real
@@ -264,14 +266,14 @@ exp_a : exp_a TK_SUMA exp_a {
         posTemp = crearTemp(TIPO_REAL);
         $$.tipo = TIPO_REAL;
         // Cambiar $1 a real
-        generarCuadrupla($1.place, OPERADOR_INT_A_REAL, 0, posTemp);
+        generarCuadrupla($1.place, OPERADOR_INT_A_REAL, -1, posTemp);
         generarCuadrupla(posTemp, OPERADOR_RESTA,  $3.place, posTemp);
     } else if ($1.tipo == TIPO_REAL && $3.tipo == TIPO_ENTERO) {
         // Resultado: tipo real
         posTemp = crearTemp(TIPO_REAL);
         $$.tipo = TIPO_REAL;
         // Cambiar $1 a real
-        generarCuadrupla($3.place, OPERADOR_INT_A_REAL, 0, posTemp);
+        generarCuadrupla($3.place, OPERADOR_INT_A_REAL, -1, posTemp);
         generarCuadrupla(posTemp, OPERADOR_RESTA,  $1.place, posTemp);
     } else if ($1.tipo == TIPO_REAL && $3.tipo == TIPO_REAL) {
         // Resultado: tipo real
@@ -298,14 +300,14 @@ exp_a : exp_a TK_SUMA exp_a {
         posTemp = crearTemp(TIPO_REAL);
         $$.tipo = TIPO_REAL;
         // Cambiar $1 a real
-        generarCuadrupla($1.place, OPERADOR_INT_A_REAL, 0, posTemp);
+        generarCuadrupla($1.place, OPERADOR_INT_A_REAL, -1, posTemp);
         generarCuadrupla(posTemp, OPERADOR_PROD,  $3.place, posTemp);
     } else if ($1.tipo == TIPO_REAL && $3.tipo == TIPO_ENTERO) {
         // Resultado: tipo real
         posTemp = crearTemp(TIPO_REAL);
         $$.tipo = TIPO_REAL;
         // Cambiar $1 a real
-        generarCuadrupla($3.place, OPERADOR_INT_A_REAL, 0, posTemp);
+        generarCuadrupla($3.place, OPERADOR_INT_A_REAL, -1, posTemp);
         generarCuadrupla(posTemp, OPERADOR_PROD,  $1.place, posTemp);
     } else if ($1.tipo == TIPO_REAL && $3.tipo == TIPO_REAL) {
         // Resultado: tipo real
@@ -332,14 +334,14 @@ exp_a : exp_a TK_SUMA exp_a {
         posTemp = crearTemp(TIPO_REAL);
         $$.tipo = TIPO_REAL;
         // Cambiar $1 a real
-        generarCuadrupla($1.place, OPERADOR_INT_A_REAL, 0, posTemp);
+        generarCuadrupla($1.place, OPERADOR_INT_A_REAL, -1, posTemp);
         generarCuadrupla(posTemp, OPERADOR_DIV_REA,  $3.place, posTemp);
     } else if ($1.tipo == TIPO_REAL && $3.tipo == TIPO_ENTERO) {
         // Resultado: tipo real
         posTemp = crearTemp(TIPO_REAL);
         $$.tipo = TIPO_REAL;
         // Cambiar $1 a real
-        generarCuadrupla($3.place, OPERADOR_INT_A_REAL, 0, posTemp);
+        generarCuadrupla($3.place, OPERADOR_INT_A_REAL, -1, posTemp);
         generarCuadrupla(posTemp, OPERADOR_DIV_REA,  $1.place, posTemp);
     } else if ($1.tipo == TIPO_REAL && $3.tipo == TIPO_REAL) {
         // Resultado: tipo real
@@ -387,14 +389,17 @@ exp_a : exp_a TK_SUMA exp_a {
 }
 | operando {
     // Guardar place y tipo
-    if ($1.tipo == TIPO_BOOLEANO){
-        memcpy($$.falso, $1.falso, TAMANO_TABLA*sizeof(int));
-        $$.numFalsos = $1.numFalsos;
-        memcpy($$.verdadero, $1.verdadero, TAMANO_TABLA*sizeof(int));
-        $$.numVerdaderos = $1.numVerdaderos;
+   if ($1.tipo == TIPO_BOOLEANO){
+        $$.verdadero[0] = tablaDeCuadruplas.tamano;
+        $$.numVerdaderos = 1;
+        $$.falso[0] = tablaDeCuadruplas.tamano+1;
+        $$.numFalsos = 1;
+        generarCuadrupla($1.place, OPERADOR_IF, -1, -1);
+        generarCuadrupla(-1,OPERADOR_GOTO,-1,-1);
     }
     $$.place = $1.place;
     $$.tipo = $1.tipo;
+    imprimirTablaCuadruplas(stdout);
 }
 | TK_LITERAL {}
 | TK_RESTA exp_a  {
@@ -414,7 +419,7 @@ exp_a : exp_a TK_SUMA exp_a {
     }
     $$.place = posTemp;
     // Generar cuádrupla
-    generarCuadrupla(0, OPERADOR_RESTA, $2.place, posTemp);
+    generarCuadrupla(-1, OPERADOR_RESTA, $2.place, posTemp);
 }
 | exp_a TK_Y M exp_a {
     backpatch($1.verdadero, $1.numVerdaderos, $3);
@@ -422,6 +427,7 @@ exp_a : exp_a TK_SUMA exp_a {
     $$.numFalsos = $1.numFalsos + $4.numFalsos;
     $$.numVerdaderos = $4.numVerdaderos;
     memcpy($$.verdadero, $4.verdadero, TAMANO_TABLA*sizeof(int));
+    $$.tipo = $1.tipo;
 }
 | exp_a TK_O M exp_a {
     backpatch($1.falso, $1.numFalsos, $3);
@@ -429,12 +435,14 @@ exp_a : exp_a TK_SUMA exp_a {
     $$.numVerdaderos = $1.numVerdaderos + $4.numVerdaderos;
     $$.numFalsos = $4.numFalsos;
     memcpy($$.falso, $4.falso, TAMANO_TABLA*sizeof(int));
+    $$.tipo = $1.tipo;
 }
 | TK_NO exp_a {
     memcpy($$.verdadero, $2.falso, TAMANO_TABLA*sizeof(int));
     $$.numVerdaderos = $2.numFalsos;
     memcpy($$.falso, $2.verdadero, TAMANO_TABLA*sizeof(int));
     $$.numFalsos = $2.numVerdaderos;
+    $$.tipo = $2.tipo;
 }
 | TK_VERDADERO {
 }
@@ -446,21 +454,24 @@ exp_a : exp_a TK_SUMA exp_a {
     $$.falso[0] = tablaDeCuadruplas.tamano+1;
     $$.numFalsos = 1;
     generarCuadrupla($1.place, $2, $3.place, -1);
-    generarCuadrupla(0,OPERADOR_GOTO,0,-1);
+    generarCuadrupla(-1,OPERADOR_GOTO,-1,-1);
+    $$.tipo = TIPO_BOOLEANO;
 }
 ;
-expresion : exp_a {}
+expresion : exp_a {
+    if ($1.tipo == TIPO_BOOLEANO){
+        memcpy($$.falso, $1.falso, TAMANO_TABLA*sizeof(int));
+        $$.numFalsos = $1.numFalsos;
+        memcpy($$.verdadero, $1.verdadero, TAMANO_TABLA*sizeof(int));
+        $$.numVerdaderos = $1.numVerdaderos;
+    }
+    $$.place = $1.place;
+    $$.tipo = $1.tipo;
+    }
 | funcion_ll {}
 ;
 operando : TK_IDENTIFICADOR {
-    if (consultarTipo($1) == TIPO_BOOLEANO){
-        $$.verdadero[0] = tablaDeCuadruplas.tamano;
-        $$.numVerdaderos = 1;
-        $$.falso[0] = tablaDeCuadruplas.tamano+1;
-        $$.numFalsos = 1;
-        //generarCuadrupla($1.place, OPERADOR_ASIGNACION, 0, -1);
-        generarCuadrupla(0,OPERADOR_GOTO,0,-1);
-    }
+    
     $$.place = obtenerPosicionSimbolo($1);
     $$.tipo = consultarTipo($1);
 }
@@ -496,9 +507,9 @@ asignacion : operando TK_ASIGNACION expresion {
             
             backpatch($3.verdadero, $3.numVerdaderos, tablaDeCuadruplas.tamano);
             generarCuadrupla(-1, OPERADOR_VERDADERO, -1, $1.place);
+        } else {
+            generarCuadrupla($3.place, OPERADOR_ASIGNACION, -1, $1.place);
         }
-
-        generarCuadrupla($3.place, OPERADOR_ASIGNACION, -1, $1.place);
     } else {
         yyerror("Error en la asignación: tipos incompatibles\n");
     }
@@ -516,7 +527,7 @@ alternativa : TK_SI M expresion TK_ENTONCES M instrucciones lista_opciones TK_FS
         nextquad[0] = tablaDeCuadruplas.tamano;
         merge($3.falso, $3.numFalsos, nextquad, 1, $$.cuadruplas);
         $$.siguiente = $3.numFalsos+1;
-        generarCuadrupla(0, OPERADOR_GOTO, 0, -1);
+        generarCuadrupla(-1, OPERADOR_GOTO, -1, -1);
     }
     //$$.cuadruplas[$$.siguiente] = $2;
     //$$.siguiente++;
@@ -534,7 +545,7 @@ lista_opciones : TK_SINOSI M expresion TK_ENTONCES M instrucciones lista_opcione
         nextquad[0] = tablaDeCuadruplas.tamano;
         merge($3.falso, $3.numFalsos, nextquad, 1, $$.cuadruplas);
         $$.siguiente = $3.numFalsos+1;
-        generarCuadrupla(0, OPERADOR_GOTO, 0, -1);
+        generarCuadrupla(-1, OPERADOR_GOTO, -1, -1);
     }
     //$$.cuadruplas[$$.siguiente] = $2;
     //$$.siguiente++;
@@ -546,7 +557,16 @@ iteracion : it_cota_fija {}
 ;
 it_cota_fija : TK_PARA TK_IDENTIFICADOR TK_ASIGNACION expresion TK_HASTA expresion TK_HACER instrucciones TK_FPARA {}
 ;
-it_cota_exp : TK_MIENTRAS expresion TK_HACER instrucciones TK_FMIENTRAS {}
+it_cota_exp : TK_MIENTRAS M expresion TK_HACER M instrucciones TK_FMIENTRAS {
+    backpatch($3.verdadero, $3.numVerdaderos, $5);
+    if ($6.siguiente != 0){
+        backpatch($6.cuadruplas, $6.siguiente, $2);
+    } else {
+        generarCuadrupla(-1, OPERADOR_GOTO, -1, $2);
+    }
+    memcpy($$.cuadruplas, $3.falso, TAMANO_TABLA*sizeof(int));
+    $$.siguiente = $3.numFalsos;
+}
 ;
 accion_d : TK_ACCION a_cabecera bloque TK_FACCION {}
 ;
