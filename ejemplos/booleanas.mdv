@@ -4,7 +4,9 @@ sal c: booleano;
 {Prec: nada}
     var
         a,b: booleano;
+	e, f: entero;
     fvar;
+    c := e < f;
     c := no a;
     c := a y no b;
     c := a o b;

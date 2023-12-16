@@ -1,6 +1,6 @@
 #include "tablaDeCuadruplas.h"
 
-typedef enum { OPR_IGUAL = 14, OPR_MAYOR, OPR_MENOR, OPR_MENOR_IGUAL, OPR_MAYOR_IGUAL, OPR_DISTINTO } Oprel;
+typedef enum { OPR_IGUAL = 15, OPR_MAYOR, OPR_MENOR, OPR_MENOR_IGUAL, OPR_MAYOR_IGUAL, OPR_DISTINTO } Oprel;
 
 typedef enum { ENTERO, REAL, CARACTER, CADENA } Literal;
 
@@ -20,7 +20,8 @@ typedef enum {
     OPERADOR_GOTO,
     OPERADOR_FALSO,
     OPERADOR_VERDADERO,
-    OPERADOR_IF
+    OPERADOR_IF,
+    OPERADOR_PARA
 } Operaciones;
 
 typedef struct {

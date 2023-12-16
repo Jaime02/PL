@@ -3,15 +3,21 @@ algoritmo sumacomb;
     sal suma: entero;
 {Prec: n = N AND m = M AND M >= N > 0}
     var
-        i, comb, a, b: entero;
+        i, comb, a, b, j: entero;
     fvar;
     i := a;
+    j := n;
     suma := b;
     comb := m;
+    mientras j < comb hacer
     mientras i < n hacer
+    mientras m < b hacer
         suma := suma + comb;
         comb := comb * (m - i - b) div (i + a);
         i := i + b
     fmientras
+    fmientras
+    fmientras
 {Post: n = N AND suma = SUMATORIO(i = 1..N) (M sobre i)}
 falgoritmo
+

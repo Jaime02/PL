@@ -12,6 +12,7 @@ void yyerror(const char *s);
 extern FILE* yyin;
 extern int yydebug;
 char output[100][100];
+int numOutput;
 extern TablaCuadruplas tablaDeCuadruplas;
 
 %}
@@ -50,8 +51,10 @@ extern TablaCuadruplas tablaDeCuadruplas;
 %type<instruccion> asignacion
 %type<instruccion> iteracion
 %type<instruccion> it_cota_exp
+%type<instruccion> it_cota_fija
 %type<instruccion> alternativa
 %type<instruccion> lista_opciones
+%type<instruccion> N
 %type<tipoBase> d_tipo
 %type<entero> M
 
@@ -124,7 +127,9 @@ extern TablaCuadruplas tablaDeCuadruplas;
 
 %%
 
-desc_algoritmo : TK_ALGORITMO TK_IDENTIFICADOR TK_PUNTO_COMA cabecera_alg bloque_alg TK_FALGORITMO { 
+desc_algoritmo : TK_ALGORITMO TK_IDENTIFICADOR TK_PUNTO_COMA cabecera_alg bloque_alg TK_FALGORITMO {
+    for (int i = 0; i < numOutput; i++)
+        generarCuadrupla(obtenerPosicionSimbolo(output[i]), OUTPUT, -1, 200);
     mostrarTablaSimbolos();
     imprimirTablaCuadruplas(stdout);
 }
@@ -213,8 +218,8 @@ decl_ent : TK_ENT lista_d_var {
 decl_sal : TK_SAL lista_d_var {
     for (int i = 0; i < listaIdTamano(&$2); i++){
         char* nombre = listaIdObtener(&$2, i);
-        int posicionSimbolo = obtenerPosicionSimbolo(nombre);
-        generarCuadrupla(posicionSimbolo, OUTPUT, -1, 200);
+        strcpy(output[numOutput],nombre);
+        numOutput++;
     }
 }
 ;
@@ -399,7 +404,6 @@ exp_a : exp_a TK_SUMA exp_a {
     }
     $$.place = $1.place;
     $$.tipo = $1.tipo;
-    imprimirTablaCuadruplas(stdout);
 }
 | TK_LITERAL {}
 | TK_RESTA exp_a  {
@@ -423,6 +427,8 @@ exp_a : exp_a TK_SUMA exp_a {
 }
 | exp_a TK_Y M exp_a {
     backpatch($1.verdadero, $1.numVerdaderos, $3);
+    for(int i = 0; i < $1.numVerdaderos; i++)
+        printf("%d\n",$1.verdadero[i]);
     merge($1.falso, $1.numFalsos, $4.falso, $4.numFalsos, $$.falso);
     $$.numFalsos = $1.numFalsos + $4.numFalsos;
     $$.numVerdaderos = $4.numVerdaderos;
@@ -448,7 +454,7 @@ exp_a : exp_a TK_SUMA exp_a {
 }
 | TK_FALSO {
 }
-| expresion TK_OPREL expresion {
+| exp_a TK_OPREL exp_a {
     $$.verdadero[0] = tablaDeCuadruplas.tamano;
     $$.numVerdaderos = 1;
     $$.falso[0] = tablaDeCuadruplas.tamano+1;
@@ -492,14 +498,17 @@ instruccion : TK_CONTINUAR {}
 | asignacion {
     $$ = $1;
 }
-| alternativa {}
-| iteracion {}
+| alternativa {
+    backpatch($1.cuadruplas, $1.siguiente, tablaDeCuadruplas.tamano);
+    $$ = $1;
+}
+| iteracion {$$ = $1;}
 | accion_ll {}
 ;
 asignacion : operando TK_ASIGNACION expresion {
     // Guardar en operando $1 expresión $3
     // Evita asignar por ejemplo un booleano a un entero
-    if ($1.tipo == $3.tipo || ($1.tipo == TIPO_REAL && $3.tipo == TIPO_ENTERO)) {
+    if ($1.tipo == $3.tipo) {
         if ($1.tipo == TIPO_BOOLEANO) {
             backpatch($3.falso, $3.numFalsos, tablaDeCuadruplas.tamano);
             generarCuadrupla(-1, OPERADOR_FALSO, -1, $1.place);
@@ -510,52 +519,62 @@ asignacion : operando TK_ASIGNACION expresion {
         } else {
             generarCuadrupla($3.place, OPERADOR_ASIGNACION, -1, $1.place);
         }
+    } else if ($1.tipo == TIPO_REAL && $3.tipo == TIPO_ENTERO) {
+        generarCuadrupla($3.place, OPERADOR_INT_A_REAL, -1, $1.place);
     } else {
         yyerror("Error en la asignación: tipos incompatibles\n");
     }
 }
 ;
-alternativa : TK_SI M expresion TK_ENTONCES M instrucciones lista_opciones TK_FSI {
-     backpatch($3.verdadero, $3.numVerdaderos, $5);
-     if ($6.siguiente != 0){
-        backpatch($3.falso, $3.numFalsos, $6.cuadruplas[$6.siguiente-1]);
-        merge($3.falso, $3.numFalsos, $6.cuadruplas, $6.siguiente, $$.cuadruplas);
-        $$.siguiente = $3.numFalsos + $6.siguiente;
+alternativa : TK_SI expresion TK_ENTONCES M instrucciones M lista_opciones TK_FSI {
+     backpatch($2.verdadero, $2.numVerdaderos, $4);
+     backpatch($2.falso, $2.numFalsos, $6);
+     if ($7.siguiente != 0){
+        merge($5.cuadruplas, $5.siguiente, $7.cuadruplas, $7.siguiente, $$.cuadruplas);
+        $$.siguiente = $5.siguiente + $7.siguiente;
     } else {
-        backpatch($3.falso, $3.numFalsos, tablaDeCuadruplas.tamano);
         int nextquad[1];
         nextquad[0] = tablaDeCuadruplas.tamano;
-        merge($3.falso, $3.numFalsos, nextquad, 1, $$.cuadruplas);
-        $$.siguiente = $3.numFalsos+1;
+        merge($5.cuadruplas, $5.siguiente, nextquad, 1, $$.cuadruplas);
+        $$.siguiente = $5.siguiente + 1;
         generarCuadrupla(-1, OPERADOR_GOTO, -1, -1);
     }
-    //$$.cuadruplas[$$.siguiente] = $2;
-    //$$.siguiente++;
 }
 ;
-lista_opciones : TK_SINOSI M expresion TK_ENTONCES M instrucciones lista_opciones {
-    backpatch($3.verdadero, $3.numVerdaderos, $5);
-     if ($6.siguiente != 0){
-        backpatch($3.falso, $3.numFalsos, $6.cuadruplas[$6.siguiente-1]);
-        merge($3.falso, $3.numFalsos, $6.cuadruplas, $6.siguiente, $$.cuadruplas);
-        $$.siguiente = $3.numFalsos + $6.siguiente;
+lista_opciones : TK_SINOSI expresion TK_ENTONCES M instrucciones M lista_opciones {
+     backpatch($2.verdadero, $2.numVerdaderos, $4);
+     backpatch($2.falso, $2.numFalsos, $6);
+     if ($7.siguiente != 0){
+        merge($5.cuadruplas, $5.siguiente, $7.cuadruplas, $7.siguiente, $$.cuadruplas);
+        $$.siguiente = $5.siguiente + $7.siguiente;
     } else {
-        backpatch($3.falso, $3.numFalsos, tablaDeCuadruplas.tamano);
         int nextquad[1];
         nextquad[0] = tablaDeCuadruplas.tamano;
-        merge($3.falso, $3.numFalsos, nextquad, 1, $$.cuadruplas);
-        $$.siguiente = $3.numFalsos+1;
+        merge($5.cuadruplas, $5.siguiente, nextquad, 1, $$.cuadruplas);
+        $$.siguiente = $5.siguiente + 1;
         generarCuadrupla(-1, OPERADOR_GOTO, -1, -1);
     }
-    //$$.cuadruplas[$$.siguiente] = $2;
-    //$$.siguiente++;
 }
 | %empty {$$.siguiente == 0;}
 ;
-iteracion : it_cota_fija {}
-| it_cota_exp {}
+iteracion : it_cota_fija {
+    backpatch($1.cuadruplas, $1.siguiente, tablaDeCuadruplas.tamano);
+    $$ = $1;
+}
+| it_cota_exp {
+}
 ;
-it_cota_fija : TK_PARA TK_IDENTIFICADOR TK_ASIGNACION expresion TK_HASTA expresion TK_HACER instrucciones TK_FPARA {}
+it_cota_fija : TK_PARA TK_IDENTIFICADOR TK_ASIGNACION expresion TK_HASTA expresion N TK_HACER M instrucciones TK_FPARA {
+    backpatch($10.cuadruplas, $10.siguiente, tablaDeCuadruplas.tamano);
+    generarCuadrupla(obtenerPosicionSimbolo($2), OPERADOR_PARA, -1, obtenerPosicionSimbolo($2));
+    generarCuadrupla(-1, OPERADOR_GOTO, -1, tablaDeCuadruplas.tamano + 2);
+    backpatch($7.cuadruplas, $7.siguiente, tablaDeCuadruplas.tamano);
+    generarCuadrupla($4.place, OPERADOR_ASIGNACION, -1, obtenerPosicionSimbolo($2));
+    generarCuadrupla(obtenerPosicionSimbolo($2), OPR_MENOR, $6.place, $9);
+    $$.cuadruplas[0] = tablaDeCuadruplas.tamano;
+    $$.siguiente = 1;
+    generarCuadrupla(-1, OPERADOR_GOTO, -1, -1);
+}
 ;
 it_cota_exp : TK_MIENTRAS M expresion TK_HACER M instrucciones TK_FMIENTRAS {
     backpatch($3.verdadero, $3.numVerdaderos, $5);
@@ -594,6 +613,12 @@ M : %empty {
     $$ = tablaDeCuadruplas.tamano;
 }
 ;
+N : %empty {
+    $$.cuadruplas[0] = tablaDeCuadruplas.tamano;
+    $$.siguiente = 1;
+    generarCuadrupla(-1, OPERADOR_GOTO, -1, -1);
+}
+;
 
 %%
 
@@ -614,6 +639,7 @@ int main(int argc, char* argv[]) {
 
     inicializarTablaDeSimbolos();
     tablaDeCuadruplas.tamano = 0;
+    numOutput = 0;
 
     int result = yyparse();
     if (result == 0) {
