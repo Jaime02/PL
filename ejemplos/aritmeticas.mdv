@@ -3,8 +3,8 @@ ent c: entero;
 sal c: entero;
 {Prec: nada}
     var
-        a,b: entero;
-        r,s: real;
+        a, b: entero;
+        r, s: real;
     fvar;
     a := -a;
     a := a -b;
@@ -18,7 +18,5 @@ sal c: entero;
     a := a mod b;
 
     r := s
-
-
 {Post: nada}
 falgoritmo

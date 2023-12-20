@@ -11,9 +11,10 @@ void yyerror(const char *s);
 
 extern FILE* yyin;
 extern int yydebug;
-char output[100][100];
-int numOutput;
 extern TablaCuadruplas tablaDeCuadruplas;
+
+char variablesDeSalida[100][100];
+int numVariablesDeSalida;
 
 %}
 
@@ -128,8 +129,8 @@ extern TablaCuadruplas tablaDeCuadruplas;
 %%
 
 desc_algoritmo : TK_ALGORITMO TK_IDENTIFICADOR TK_PUNTO_COMA cabecera_alg bloque_alg TK_FALGORITMO {
-    for (int i = 0; i < numOutput; i++)
-        generarCuadrupla(obtenerPosicionSimbolo(output[i]), OUTPUT, -1, 200);
+    for (int i = 0; i < numVariablesDeSalida; i++)
+        generarCuadrupla(obtenerPosicionSimbolo(variablesDeSalida[i]), OUTPUT, -1, 200);
     mostrarTablaSimbolos();
     imprimirTablaCuadruplas(stdout);
 }
@@ -218,8 +219,8 @@ decl_ent : TK_ENT lista_d_var {
 decl_sal : TK_SAL lista_d_var {
     for (int i = 0; i < listaIdTamano(&$2); i++){
         char* nombre = listaIdObtener(&$2, i);
-        strcpy(output[numOutput],nombre);
-        numOutput++;
+        strcpy(variablesDeSalida[numVariablesDeSalida],nombre);
+        numVariablesDeSalida++;
     }
 }
 ;
@@ -427,12 +428,10 @@ exp_a : exp_a TK_SUMA exp_a {
 }
 | exp_a TK_Y M exp_a {
     backpatch($1.verdadero, $1.numVerdaderos, $3);
-    for(int i = 0; i < $1.numVerdaderos; i++)
-        printf("%d\n",$1.verdadero[i]);
     merge($1.falso, $1.numFalsos, $4.falso, $4.numFalsos, $$.falso);
     $$.numFalsos = $1.numFalsos + $4.numFalsos;
     $$.numVerdaderos = $4.numVerdaderos;
-    memcpy($$.verdadero, $4.verdadero, TAMANO_TABLA*sizeof(int));
+    memcpy($$.verdadero, $4.verdadero, TAMANO_TABLA * sizeof(int));
     $$.tipo = $1.tipo;
 }
 | exp_a TK_O M exp_a {
@@ -440,13 +439,13 @@ exp_a : exp_a TK_SUMA exp_a {
     merge($1.verdadero, $1.numVerdaderos, $4.verdadero, $4.numVerdaderos, $$.verdadero);
     $$.numVerdaderos = $1.numVerdaderos + $4.numVerdaderos;
     $$.numFalsos = $4.numFalsos;
-    memcpy($$.falso, $4.falso, TAMANO_TABLA*sizeof(int));
+    memcpy($$.falso, $4.falso, TAMANO_TABLA * sizeof(int));
     $$.tipo = $1.tipo;
 }
 | TK_NO exp_a {
-    memcpy($$.verdadero, $2.falso, TAMANO_TABLA*sizeof(int));
+    memcpy($$.verdadero, $2.falso, TAMANO_TABLA * sizeof(int));
     $$.numVerdaderos = $2.numFalsos;
-    memcpy($$.falso, $2.verdadero, TAMANO_TABLA*sizeof(int));
+    memcpy($$.falso, $2.verdadero, TAMANO_TABLA * sizeof(int));
     $$.numFalsos = $2.numVerdaderos;
     $$.tipo = $2.tipo;
 }
@@ -466,9 +465,9 @@ exp_a : exp_a TK_SUMA exp_a {
 ;
 expresion : exp_a {
     if ($1.tipo == TIPO_BOOLEANO){
-        memcpy($$.falso, $1.falso, TAMANO_TABLA*sizeof(int));
+        memcpy($$.falso, $1.falso, TAMANO_TABLA * sizeof(int));
         $$.numFalsos = $1.numFalsos;
-        memcpy($$.verdadero, $1.verdadero, TAMANO_TABLA*sizeof(int));
+        memcpy($$.verdadero, $1.verdadero, TAMANO_TABLA * sizeof(int));
         $$.numVerdaderos = $1.numVerdaderos;
     }
     $$.place = $1.place;
@@ -487,7 +486,7 @@ operando : TK_IDENTIFICADOR {
 ;
 instrucciones : instruccion TK_PUNTO_COMA instrucciones {
     $$.siguiente = $3.siguiente;
-    memcpy($$.cuadruplas, $3.cuadruplas,TAMANO_TABLA*sizeof(int));
+    memcpy($$.cuadruplas, $3.cuadruplas,TAMANO_TABLA * sizeof(int));
 }
 | instruccion {
     // Solo hay una instrucción, instrucciones es instrucción
@@ -583,7 +582,7 @@ it_cota_exp : TK_MIENTRAS M expresion TK_HACER M instrucciones TK_FMIENTRAS {
     } else {
         generarCuadrupla(-1, OPERADOR_GOTO, -1, $2);
     }
-    memcpy($$.cuadruplas, $3.falso, TAMANO_TABLA*sizeof(int));
+    memcpy($$.cuadruplas, $3.falso, TAMANO_TABLA * sizeof(int));
     $$.siguiente = $3.numFalsos;
 }
 ;
@@ -639,13 +638,13 @@ int main(int argc, char* argv[]) {
 
     inicializarTablaDeSimbolos();
     tablaDeCuadruplas.tamano = 0;
-    numOutput = 0;
+    numVariablesDeSalida = 0;
 
     int result = yyparse();
     if (result == 0) {
-        printf("Parseo correcto\n");
+        printf("\nParseo correcto\n");
     } else {
-        printf("Parseo incorrecto\n");
+        printf("\nParseo incorrecto\n");
     }
 
     return result;

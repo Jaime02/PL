@@ -1,9 +1,7 @@
 VALGRIND = valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --log-file=valgrind-out.txt
 # --exit-on-first-error=yes --error-exitcode=1
 
-all:
-	$(MAKE) compilar
-	$(MAKE) ejecutar1D
+all: compilar
 
 compilar:
 	bison -d -t parser.y
@@ -11,24 +9,17 @@ compilar:
 	gcc -O0 -g -c lex.yy.c -o lexer.o
 	gcc -O0 -g parser.tab.c lexer.o modulos/listaId.c modulos/tablaDeSimbolos.c modulos/tablaDeCuadruplas.c -lfl -lm -o compilador
 
-ejecutarIntercambiar:
+ejecutarIntercambiar: compilar
 	./compilador ejemplos/intercambiar.mdv
 
-ejecutar1:
-	./compilador ejemplos/programa1.mdv
-
-ejecutar1D:
-	./compilador ejemplos/programa1D.mdv
-
-ejecutarAritmeticas:
+ejecutarAritmeticas: compilar
 	./compilador ejemplos/aritmeticas.mdv
 
-ejecutar2:
-	./compilador ejemplos/programa2.mdv
+ejecutarPrograma1: compilar
+	./compilador ejemplos/programa1.mdv
 
-ejecutarBooleanas:
-	./compilador ejemplos/booleanas.mdv
+ejecutarPrograma2: compilar
+	./compilador ejemplos/programa2.mdv
 
 clean:
 	rm -f lexer.o parser.tab.c parser.tab.h parser.output lex.yy.c compilador.o valgrind-out.txt compilador
-
