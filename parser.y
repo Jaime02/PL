@@ -401,7 +401,7 @@ exp_a : exp_a TK_SUMA exp_a {
         $$.falso[0] = tablaDeCuadruplas.tamano+1;
         $$.numFalsos = 1;
         generarCuadrupla($1.place, OPERADOR_IF, -1, -1);
-        generarCuadrupla(-1,OPERADOR_GOTO,-1,-1);
+        generarCuadrupla(-1, OPERADOR_GOTO, -1, -1);
     }
     $$.place = $1.place;
     $$.tipo = $1.tipo;
@@ -456,10 +456,12 @@ exp_a : exp_a TK_SUMA exp_a {
 | exp_a TK_OPREL exp_a {
     $$.verdadero[0] = tablaDeCuadruplas.tamano;
     $$.numVerdaderos = 1;
-    $$.falso[0] = tablaDeCuadruplas.tamano+1;
+    
+    $$.falso[0] = tablaDeCuadruplas.tamano + 1;
     $$.numFalsos = 1;
+
     generarCuadrupla($1.place, $2, $3.place, -1);
-    generarCuadrupla(-1,OPERADOR_GOTO,-1,-1);
+    generarCuadrupla(-1, OPERADOR_GOTO, -1, -1);
     $$.tipo = TIPO_BOOLEANO;
 }
 ;
@@ -528,7 +530,7 @@ asignacion : operando TK_ASIGNACION expresion {
 alternativa : TK_SI expresion TK_ENTONCES M instrucciones M lista_opciones TK_FSI {
      backpatch($2.verdadero, $2.numVerdaderos, $4);
      backpatch($2.falso, $2.numFalsos, $6);
-     if ($7.siguiente != 0){
+     if ($7.siguiente != 0) {
         merge($5.cuadruplas, $5.siguiente, $7.cuadruplas, $7.siguiente, $$.cuadruplas);
         $$.siguiente = $5.siguiente + $7.siguiente;
     } else {
@@ -577,11 +579,13 @@ it_cota_fija : TK_PARA TK_IDENTIFICADOR TK_ASIGNACION expresion TK_HASTA expresi
 ;
 it_cota_exp : TK_MIENTRAS M expresion TK_HACER M instrucciones TK_FMIENTRAS {
     backpatch($3.verdadero, $3.numVerdaderos, $5);
-    if ($6.siguiente != 0){
+    
+    if ($6.siguiente != 0) {
         backpatch($6.cuadruplas, $6.siguiente, $2);
     } else {
         generarCuadrupla(-1, OPERADOR_GOTO, -1, $2);
     }
+
     memcpy($$.cuadruplas, $3.falso, TAMANO_TABLA * sizeof(int));
     $$.siguiente = $3.numFalsos;
 }
