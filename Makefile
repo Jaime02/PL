@@ -18,6 +18,9 @@ ejecutarAritmeticas: compilar
 ejecutarBooleanas: compilar
 	./compilador ejemplos/booleanas.mdv
 
+ejecutarPara: compilar
+	./compilador ejemplos/para.mdv
+
 ejecutarPrograma1: compilar
 	./compilador ejemplos/programa1.mdv
 

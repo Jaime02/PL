@@ -31,3 +31,27 @@ Para borrar los archivos intermedios generados
 ```bash
 make clean
 ```
+
+Para ejecutar el programa
+    
+```bash
+make <nombre de la regla de make>
+```
+
+Ejemplos:
+
+```bash
+make ejecutarPrograma1
+make ejecutarAritmeticas
+```
+
+# Funcionalidades:
+
+- Declarar listas de variables
+- Operaciones aritméticas
+- Operaciones lógicas booleanas
+- Expresiones alternativas
+- Bucles para
+
+### WIP
+- Bucles mientras

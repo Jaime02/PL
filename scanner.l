@@ -101,12 +101,12 @@ R_ENTERO             entero
 {CERRAR_PARENTESIS}  { return TK_CERRAR_PARENTESIS; }
 {ABRIR_TABLA}        { return TK_ABRIR_TABLA; }
 {CERRAR_TABLA}       { return TK_CERRAR_TABLA; }
-{BOOLEANO}           { return TK_BOOLEANO; }
+{BOOLEANO}           { }
 {SALTO}              { }
 {OPR_SUMA}           { return TK_SUMA; }
 {OPR_RESTA}          { return TK_RESTA; }
 {OPR_PROD}           { return TK_PROD; }
-{OPR_MOD}            { return TK_MOD; }
+{OPR_MOD}            { }
 {OPR_DIV_REA}        { return TK_DIV_REA; }
 {OPR_DIV}            { return TK_DIV; }
 

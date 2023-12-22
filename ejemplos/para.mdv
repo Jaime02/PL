@@ -1,0 +1,13 @@
+algoritmo algoritmoPara;
+ent c: entero;
+sal c: entero;
+{Prec: nada}
+    var
+        i: entero;
+    fvar;
+
+    para i := i hasta i hacer
+        c := c + i
+    fpara
+{Post: nada}
+falgoritmo

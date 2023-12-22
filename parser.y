@@ -64,15 +64,9 @@ int numVariablesDeSalida;
 %token TK_DEFINICION
 %token TK_SUBRANGO
 %token TK_ENTONCES
-%left TK_SUMA TK_RESTA TK_DIV TK_PROD TK_MOD TK_R_MOD TK_DIV_REA TK_IGUAL TK_O TK_Y
-%token TK_MAYOR
-%token TK_MENOR
-%token TK_MENOR_IGUAL
-%token TK_MAYOR_IGUAL
-%token TK_DISTINTO
+%left TK_SUMA TK_RESTA TK_DIV TK_PROD TK_R_MOD TK_DIV_REA TK_IGUAL TK_O TK_Y
 %token TK_ABRIR_TABLA
 %token TK_CERRAR_TABLA
-%token TK_BOOLEANO
 %token TK_ABRIR_PARENTESIS
 %token TK_CERRAR_PARENTESIS
 
@@ -82,8 +76,6 @@ int numVariablesDeSalida;
 
 %token TK_PUNTO_COMA
 %left TK_PUNTO
-%token TK_CARACTER
-%token TK_CADENA
 %token TK_COMENTARIO
 %token TK_ACCION
 %token TK_ALGORITMO
@@ -119,11 +111,6 @@ int numVariablesDeSalida;
 %token TK_TUPLA
 %token TK_VAR
 %token TK_VERDADERO
-%token TK_R_REAL
-%token TK_R_BOOLEANO
-%token TK_R_CADENA
-%token TK_R_CARACTER
-%token TK_R_ENTERO
 %token<nombreVariable> TK_IDENTIFICADOR
 
 %%
@@ -629,7 +616,7 @@ N : %empty {
 
 int main(int argc, char* argv[]) {
     // Activar modo debug
-    //yydebug = 1;
+    // yydebug = 1;
 
     if (argc <= 1) {
         printf("Error: No se ha recibido un fichero de entrada");
