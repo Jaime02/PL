@@ -129,8 +129,11 @@ int numVariablesDeSalida;
 %%
 
 desc_algoritmo : TK_ALGORITMO TK_IDENTIFICADOR TK_PUNTO_COMA cabecera_alg bloque_alg TK_FALGORITMO {
-    for (int i = 0; i < numVariablesDeSalida; i++)
+    // Generar cuadruplas para las variables de salida
+    for (int i = 0; i < numVariablesDeSalida; i++) {
         generarCuadrupla(obtenerPosicionSimbolo(variablesDeSalida[i]), OUTPUT, -1, 200);
+    }
+
     mostrarTablaSimbolos();
     imprimirTablaCuadruplas(stdout);
 }
@@ -211,7 +214,6 @@ decl_ent : TK_ENT lista_d_var {
     for (int i = 0; i < listaIdTamano(&$2); i++){
         char* nombre = listaIdObtener(&$2, i);
         int posicionSimbolo = obtenerPosicionSimbolo(nombre);
-        // printf("Posición símbolo: %d\n", posicionSimbolo);
         generarCuadrupla(posicionSimbolo, INPUT, -1, 200);
     }
 }
